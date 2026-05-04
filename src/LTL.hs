@@ -114,8 +114,8 @@ ltlTerm = parensOr $
 
 ltlLvl1 :: Parser (LTL String)
 ltlLvl1 = parensOr $ 
-          try ((reservedOp "~" <|> reservedOp "!") *> fmap LTNot ltlParser) <|>
-          try (reserved "X" *> fmap LTX ltlParser) <|>
+          try ((reservedOp "~" <|> reservedOp "!") *> fmap LTNot (parensOr ltlLvl1)) <|>
+          try (reserved "X" *> fmap LTX (parensOr ltlLvl1)) <|>
           ltlTerm
 
 ltlLvl2 :: Parser (LTL String)
@@ -167,7 +167,8 @@ closure LTFalse = Set.singleton LTFalse
 closure x = Set.union (Set.singleton x) (recurseWithLTL closure Set.union x)
 
 elemLTL :: Ord prop => LTL prop -> Set (LTL prop) -> Bool
-elemLTL (LTNot x) s = not (x `Set.member` s)
+elemLTL LTTrue _ = True 
+elemLTL (LTNot x) s = not (x `elemLTL` s)
 elemLTL x s = x `Set.member` s
 
 -- | truth set -> 
@@ -198,4 +199,6 @@ genStatesLTL = consistentSubsetsLTL . closure . normalize
 
 getAtomics :: Ord prop => LTL prop -> Set prop
 getAtomics (LTTerm p) = Set.singleton p
+getAtomics LTTrue = Set.empty
+getAtomics LTFalse = Set.empty
 getAtomics x = recurseWithLTL getAtomics Set.union x

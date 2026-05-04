@@ -15,7 +15,7 @@ import GNBA (gnbaBimap, GNBA (transitionsGNBA))
 import NBA (nbaFromGnba, NBA (transitionsNBA))
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
-prettySet s = putStrLn (foldMap (\x -> show x++"\n") $ toList s)
+prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
 
 main :: IO ()
 main = do
@@ -24,11 +24,10 @@ main = do
   print ltl
   print (normalize ltl)
   print (closure (normalize ltl))
-  putStrLn ""
   let consistent = (consistentSubsetsLTL (closure (normalize ltl)))
   prettySet consistent
   print (length consistent)
-  print (getAtomics ltl)
+  putStrLn ("atomics: " ++ show (getAtomics ltl))
   let ltlgnba = gnbaBimap toList toList (fromLTL ltl)
   print ltlgnba
   print (length (transitionsGNBA ltlgnba))

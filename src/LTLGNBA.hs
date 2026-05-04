@@ -4,12 +4,12 @@ import GNBA
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-fromLTL :: Ord prop => LTL prop -> GNBA (Set (LTL prop)) (Set prop)
+fromLTL :: (Show prop, Ord prop) => LTL prop -> GNBA (Set (LTL prop)) (Set prop)
 fromLTL ltl = GNBA states initialStates transitions finalStates
     where
         atoms = Set.map LTTerm $ getAtomics ltl
         normalizedLTL = normalize ltl
-        closureOfLTL = closure ltl
+        closureOfLTL = closure normalizedLTL
         states = consistentSubsetsLTL closureOfLTL
         initialStates = Set.filter (\x -> normalizedLTL `Set.member` x) states
         transitions = foldMap (\s -> let sigma = Set.intersection atoms s in
