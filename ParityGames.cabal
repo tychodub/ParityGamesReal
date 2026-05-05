@@ -144,4 +144,5 @@ test-suite ParityGames-test
     -- Test dependencies.
     build-depends:
         base ^>=4.20.0.0,
-        ParityGames
+        ParityGames,
+        QuickCheck

@@ -190,12 +190,12 @@ ltlParser = parensOr ltlLvl4
 normalize :: LTL prop -> LTL prop
 normalize (LTNot LTTrue) = LTFalse
 normalize (LTNot LTFalse) = LTTrue
-normalize (LTNot (LTNot a)) = a -- assumes LTL is a classical logic
+normalize (LTNot (LTNot a)) = normalize a -- assumes LTL is a classical logic
 normalize (LTNot (LTG a)) = LTF (normalize $ LTNot a)
 normalize (LTNot (LTF a)) = LTG (normalize $ LTNot a)
 normalize (LTNot (LTX a)) = LTX (normalize $ LTNot a)
 normalize (LTNot (LTU a b)) = LTR (normalize $ LTNot a) (normalize $ LTNot b)
-normalize (LTNot (LTW a b)) = LTAnd (normalize $ LTNot (LTU a b)) (LTF (LTNot a)) -- forlater steps I remove the W and M operators
+normalize (LTNot (LTW a b)) = normalize $ LTNot $ LTAnd (LTNot (LTU a b)) (LTF (LTNot a)) -- forlater steps I remove the W and M operators
 normalize (LTNot (LTR a b)) = LTU (normalize $ LTNot a) (normalize $ LTNot b)
 normalize (LTNot (LTM a b)) = normalize (LTNot $ LTU b (LTAnd a b))
 normalize (LTNot (LTAnd a b)) = LTOr (normalize $ LTNot a) (normalize $ LTNot b)

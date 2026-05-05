@@ -24,7 +24,11 @@ main = do
   let ltl = fromRight (error "parsing LTL failed") $ parse ltlParser "" ltlString
   let ltlDot = genDot ltl
   writeFile "ltlDot.gv" ltlDot
+  putStrLn ("normalize:\n"++ show (normalize ltl))
+  putStrLn ("n2:\n"++ show (normalize (normalize ltl)))
+  putStrLn "G F !((true M (false R -4)) <-> ((12 & 15) W G true))"
 
+{-
   print ltl
   print (normalize ltl)
   print (closure (normalize ltl))
@@ -42,7 +46,7 @@ main = do
   writeFile "gnbaDot.gv" ltlgnbaDot
   let ltlnbaDot = genDot ltlnba
   writeFile "nbaDot.gv" ltlnbaDot
-  
+  -}
   {-
   let filesrc = "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\refFiles\\philoslides.pnml"
   txt <- readFile filesrc

@@ -1,10 +1,32 @@
-digraph "(a U (!a & b))" {
-    "(!a & b)";
-    "(a U (!a & b))";
-    "a";
-    "!a" -> "a" [label = ""];
-    "(!a & b)" -> "!a" [label = ""];
-    "(!a & b)" -> "b" [label = ""];
-    "(a U (!a & b))" -> "(!a & b)" [label = ""];
-    "(a U (!a & b))" -> "a" [label = ""];
+digraph "!((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))" {
+    "!((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))";
+    "((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))";
+    "!((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))" -> "((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))" [label = ""];
+    "!false" -> "false" [label = ""];
+    "((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))" -> "(G (X false | false) W ((twentysix -> false) W !false))" [label = ""];
+    "((G (X false | false) W ((twentysix -> false) W !false)) <-> (X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true))))" -> "(X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true)))" [label = ""];
+    "((false U nine) -> (nine W true))" -> "(false U nine)" [label = ""];
+    "((false U nine) -> (nine W true))" -> "(nine W true)" [label = ""];
+    "((twentysix -> false) W !false)" -> "!false" [label = ""];
+    "((twentysix -> false) W !false)" -> "(twentysix -> false)" [label = ""];
+    "(F true <-> (ten <-> sixteen))" -> "(ten <-> sixteen)" [label = ""];
+    "(F true <-> (ten <-> sixteen))" -> "F true" [label = ""];
+    "(G (X false | false) W ((twentysix -> false) W !false))" -> "((twentysix -> false) W !false)" [label = ""];
+    "(G (X false | false) W ((twentysix -> false) W !false))" -> "G (X false | false)" [label = ""];
+    "(X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true)))" -> "((false U nine) -> (nine W true))" [label = ""];
+    "(X (F true <-> (ten <-> sixteen)) U ((false U nine) -> (nine W true)))" -> "X (F true <-> (ten <-> sixteen))" [label = ""];
+    "(X false | false)" -> "X false" [label = ""];
+    "(X false | false)" -> "false" [label = ""];
+    "(false U nine)" -> "false" [label = ""];
+    "(false U nine)" -> "nine" [label = ""];
+    "(nine W true)" -> "nine" [label = ""];
+    "(nine W true)" -> "true" [label = ""];
+    "(ten <-> sixteen)" -> "sixteen" [label = ""];
+    "(ten <-> sixteen)" -> "ten" [label = ""];
+    "(twentysix -> false)" -> "false" [label = ""];
+    "(twentysix -> false)" -> "twentysix" [label = ""];
+    "F true" -> "true" [label = ""];
+    "G (X false | false)" -> "(X false | false)" [label = ""];
+    "X (F true <-> (ten <-> sixteen))" -> "(F true <-> (ten <-> sixteen))" [label = ""];
+    "X false" -> "false" [label = ""];
 }
