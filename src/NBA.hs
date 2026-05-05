@@ -6,6 +6,7 @@ import qualified Data.Set as Set
 import GNBA (GNBA (..))
 import qualified Data.Sequence as Seq
 import Data.Maybe (fromJust)
+import Dot (Dot(..), showNoQuotes)
 
 data NBA a b = NBA { 
     statesNBA :: Set a,
@@ -25,6 +26,15 @@ instance (Ord a) => Explorer (NBA a b) where
     type State (NBA a _) = a
     initStates = initialNBA
     successors nba s = Set.map (\(_,_,y) -> y) $ Set.filter (\(x1,_,_) -> x1 == s) (transitionsNBA nba)
+
+instance (Show a, Show b, Ord a) => Dot (NBA a b) where
+    dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\""++ifAccept y) (statesNBA x)
+        where
+            ifAccept y = if y `Set.member` acceptingNBA x then "[shape = doublecircle]" else ""
+    dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
+                                        "\""++showNoQuotes b++"\"", 
+                                        "\""++showNoQuotes c++"\"")) (transitionsNBA x)
+    dotName _ = "nba"
 
 -- could theoretically be done without Ord b, but not worth the time
 nbaFromGnba :: (Ord a, Ord b) => GNBA a b -> NBA (a, Int) b

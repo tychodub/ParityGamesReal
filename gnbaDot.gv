@@ -1,0 +1,33 @@
+digraph gnba {
+    node [colorscheme = spectral11];
+    "[(!a & b),(a U (!a & b)),b]"[shape = doublecircle];
+    "[(a U (!a & b)),a,b]";
+    "[(a U (!a & b)),a]";
+    "[]"[shape = doublecircle];
+    "[a,b]"[shape = doublecircle];
+    "[a]"[shape = doublecircle];
+    "[(!a & b),(a U (!a & b)),b]" -> "[(!a & b),(a U (!a & b)),b]" [label = "[b]"];
+    "[(!a & b),(a U (!a & b)),b]" -> "[(a U (!a & b)),a,b]" [label = "[b]"];
+    "[(!a & b),(a U (!a & b)),b]" -> "[(a U (!a & b)),a]" [label = "[b]"];
+    "[(!a & b),(a U (!a & b)),b]" -> "[]" [label = "[b]"];
+    "[(!a & b),(a U (!a & b)),b]" -> "[a,b]" [label = "[b]"];
+    "[(!a & b),(a U (!a & b)),b]" -> "[a]" [label = "[b]"];
+    "[(a U (!a & b)),a,b]" -> "[(!a & b),(a U (!a & b)),b]" [label = "[a,b]"];
+    "[(a U (!a & b)),a,b]" -> "[(a U (!a & b)),a,b]" [label = "[a,b]"];
+    "[(a U (!a & b)),a,b]" -> "[(a U (!a & b)),a]" [label = "[a,b]"];
+    "[(a U (!a & b)),a]" -> "[(!a & b),(a U (!a & b)),b]" [label = "[a]"];
+    "[(a U (!a & b)),a]" -> "[(a U (!a & b)),a,b]" [label = "[a]"];
+    "[(a U (!a & b)),a]" -> "[(a U (!a & b)),a]" [label = "[a]"];
+    "[]" -> "[(!a & b),(a U (!a & b)),b]" [label = "[]"];
+    "[]" -> "[(a U (!a & b)),a,b]" [label = "[]"];
+    "[]" -> "[(a U (!a & b)),a]" [label = "[]"];
+    "[]" -> "[]" [label = "[]"];
+    "[]" -> "[a,b]" [label = "[]"];
+    "[]" -> "[a]" [label = "[]"];
+    "[a,b]" -> "[]" [label = "[a,b]"];
+    "[a,b]" -> "[a,b]" [label = "[a,b]"];
+    "[a,b]" -> "[a]" [label = "[a,b]"];
+    "[a]" -> "[]" [label = "[a]"];
+    "[a]" -> "[a,b]" [label = "[a]"];
+    "[a]" -> "[a]" [label = "[a]"];
+}

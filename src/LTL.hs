@@ -7,6 +7,7 @@ import Data.Functor.Identity (Identity)
 import Data.Functor (($>))
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Dot ( Dot(..), showNoQuotes, quotedString)
 
 data LTL prop = LTAnd (LTL prop) (LTL prop) 
               | LTOr (LTL prop) (LTL prop)
@@ -41,6 +42,50 @@ instance Show prop => Show (LTL prop) where
     show LTTrue       = "true"
     show LTFalse      = "false"
     show (LTTerm p)   = show p
+
+instance Show prop => Dot (LTL prop) where
+    dotNodes x = Set.map quotedString (dotNodesHelper x)
+        where
+            dotNodesHelper y = Set.union (Set.singleton $ showNoQuotes y) 
+                               (recurseWithLTL (Set.singleton . showNoQuotes) Set.union y)
+    dotArrows (LTAnd l r)  = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTAnd l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTAnd l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTOr l r)   = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTOr l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTOr l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTImpl l r) = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTImpl l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTImpl l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTEqv l r)  = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTEqv l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTEqv l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTU l r)    = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTU l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTU l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTW l r)    = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTW l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTW l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTR l r)    = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTR l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTR l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTM l r)    = mconcat [
+                                Set.singleton (quotedString (showNoQuotes (LTM l r)),"\"\"",quotedString (showNoQuotes l)),
+                                Set.singleton (quotedString (showNoQuotes (LTM l r)),"\"\"",quotedString (showNoQuotes r))
+                                ] `Set.union` dotArrows l `Set.union` dotArrows r
+    dotArrows (LTX a)      = Set.insert (quotedString (showNoQuotes (LTX a)),"\"\"",quotedString (showNoQuotes a)) $ dotArrows a
+    dotArrows (LTF a)      = Set.insert (quotedString (showNoQuotes (LTF a)),"\"\"",quotedString (showNoQuotes a)) $ dotArrows a
+    dotArrows (LTG a)      = Set.insert (quotedString (showNoQuotes (LTG a)),"\"\"",quotedString (showNoQuotes a)) $ dotArrows a
+    dotArrows (LTNot a)    = Set.insert (quotedString (showNoQuotes (LTNot a)),"\"\"",quotedString (showNoQuotes a)) $ dotArrows a
+    dotArrows _       = Set.empty
+    dotName = quotedString . showNoQuotes
 
 recurse1LTL :: (LTL prop -> LTL prop) ->  LTL prop -> LTL prop 
 recurse1LTL f (LTAnd a b) = LTAnd (f a) (f b)
@@ -171,7 +216,8 @@ elemLTL LTTrue _ = True
 elemLTL (LTNot x) s = not (x `elemLTL` s)
 elemLTL x s = x `Set.member` s
 
--- | truth set -> 
+-- | takes a set indicating true propositions and a proposition, 
+--   returns whether the proposition is locally consistent with the truth state
 locallyConsistent :: Ord prop => Set (LTL prop) -> LTL prop -> Bool
 locallyConsistent _ LTFalse = False
 locallyConsistent _ LTTrue = True

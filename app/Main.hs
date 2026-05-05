@@ -13,6 +13,7 @@ import Data.Foldable (Foldable(toList))
 import LTLGNBA (fromLTL)
 import GNBA (gnbaBimap, GNBA (transitionsGNBA))
 import NBA (nbaFromGnba, NBA (transitionsNBA))
+import Dot (genDot)
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -21,6 +22,9 @@ main :: IO ()
 main = do
   ltlString <- getLine
   let ltl = fromRight (error "parsing LTL failed") $ parse ltlParser "" ltlString
+  let ltlDot = genDot ltl
+  writeFile "ltlDot.gv" ltlDot
+
   print ltl
   print (normalize ltl)
   print (closure (normalize ltl))
@@ -31,27 +35,25 @@ main = do
   let ltlgnba = gnbaBimap toList toList (fromLTL ltl)
   print ltlgnba
   print (length (transitionsGNBA ltlgnba))
-  print (nbaFromGnba ltlgnba)
-  print (length (transitionsNBA (nbaFromGnba ltlgnba)))
+  let ltlnba = nbaFromGnba ltlgnba
+  print ltlnba
+  print (length (transitionsNBA ltlnba))
+  let ltlgnbaDot = genDot ltlgnba
+  writeFile "gnbaDot.gv" ltlgnbaDot
+  let ltlnbaDot = genDot ltlnba
+  writeFile "nbaDot.gv" ltlnbaDot
+  
   {-
-  filesrc <- getLine
+  let filesrc = "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\refFiles\\philoslides.pnml"
   txt <- readFile filesrc
   let petri = parsePNML txt
   print (Data.Set.fromList (explorePetri petri) == explore petri)
-  --print (deadlocks petri)
-  --print (deadlockPresent petri)
-  print (length (explorePetri petri))
-  print (length (explore (LeftForkFirst 4)))
-  print (length (explore (ArbitraryFork 4)))
-  print (length (explore (CrazyFork 4 0)))
-  print (length (explore (CrazyFork 4 1))) -- should be the same because of symmetry
-  print (length (deadlocks (LeftForkFirst 4)))
-  print (length (deadlocks (ArbitraryFork 4)))
-  print (length (deadlocks (CrazyFork 4 0)))
   let x = Data.Set.fromList $ explorePetri petri
   let y = explore (LeftForkFirst 4)
   putStrLn $ concatMap (\s -> s++"\n") $ prettyPetriState <$> Data.Set.toList x
   putStrLn $ concatMap (\s -> show s++"\n") $ Data.Set.toList y
+  let petriDot = genDot petri 
+  writeFile "petri.gv" petriDot
   -}
   -- print (length (explore (LeftForkFirst 11)))
 

@@ -5,6 +5,8 @@ import Data.Map ( (!), Map, mapWithKey, unionWith )
 import qualified Data.Map
 import qualified Explorer (Explorer (..))
 import qualified Data.Set
+import Dot (Dot(..), showNoQuotes)
+import qualified Data.Set as Set
 
 data Petri a b = Petri {
     places :: [a], 
@@ -33,6 +35,25 @@ instance (Ord a, Ord b) => Explorer.Explorer (Petri a b) where
     type State (Petri a _) = Map a Int
     initStates p = Data.Set.fromList [initial p]
     successors p s = Data.Set.fromList $ successors p [] s
+
+instance (Show a, Show b, Ord b) => Dot (Petri a b) where
+    dotNodes x = Set.fromList (map (\y -> "\"N" ++ showNoQuotes y++"\"") (places x)) 
+                 `Set.union` 
+                 Set.fromList (map (\y -> "\"T" ++ showNoQuotes y++"\"") (transitions x))
+    dotArrows x = (foldMap (\y -> Set.fromList $ map (\z -> 
+                                            ("\"N" ++ showNoQuotes z++"\""
+                                            ,"\"\""
+                                            ,"\"T" ++ showNoQuotes y++"\"")) (inArr y)) arrows)
+                  `Set.union`
+                  (foldMap (\y -> Set.fromList $ map (\z -> 
+                                            ("\"T" ++ showNoQuotes y++"\""
+                                            ,"\"\""
+                                            ,"\"N" ++ showNoQuotes z++"\"")) (outArr y)) arrows)
+        where
+            arrows = transitions x
+            inArr y = transInput x ! y
+            outArr y = transOutput x ! y
+    dotName _ = "petri"
 
 enabled :: (Ord a, Ord b) => Petri a b -> PetriState a -> b -> Bool
 enabled p marks t = enabledHelper xs
