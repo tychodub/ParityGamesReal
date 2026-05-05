@@ -67,7 +67,9 @@ library
                       GNBA,
                       LTLGNBA,
                       NBA,
-                      Dot
+                      Dot,
+                      Kripke,
+                      TS
 
     -- Modules included in this library but not exported.
     -- other-modules:
