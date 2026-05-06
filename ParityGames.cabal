@@ -145,4 +145,5 @@ test-suite ParityGames-test
     build-depends:
         base ^>=4.20.0.0,
         ParityGames,
-        QuickCheck
+        QuickCheck,
+        containers

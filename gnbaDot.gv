@@ -1,11 +1,15 @@
 digraph gnba {
     node [colorscheme = spectral11];
-    "[(!a & b),(a U (!a & b)),b]"[shape = doublecircle];
+    "[(!a & b),(a U (!a & b)),b]"[shape = doublecircle] [label = "[(!a & b),(a U (!a & b)),b]
+0 "];
     "[(a U (!a & b)),a,b]";
     "[(a U (!a & b)),a]";
-    "[]"[shape = doublecircle];
-    "[a,b]"[shape = doublecircle];
-    "[a]"[shape = doublecircle];
+    "[]"[shape = doublecircle] [label = "[]
+0 "];
+    "[a,b]"[shape = doublecircle] [label = "[a,b]
+0 "];
+    "[a]"[shape = doublecircle] [label = "[a]
+0 "];
     "[(!a & b),(a U (!a & b)),b]" -> "[(!a & b),(a U (!a & b)),b]" [label = "[b]"];
     "[(!a & b),(a U (!a & b)),b]" -> "[(a U (!a & b)),a,b]" [label = "[b]"];
     "[(!a & b),(a U (!a & b)),b]" -> "[(a U (!a & b)),a]" [label = "[b]"];

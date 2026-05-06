@@ -36,7 +36,7 @@ instance (Show a, Show b, Ord a) => Dot (NBA a b) where
                                         "\""++showNoQuotes c++"\"")) (transitionsNBA x)
     dotName _ = "nba"
 
--- could theoretically be done without Ord b, but not worth the time
+-- could theoretically be done without Ord b, but not worth the efficiency loss/time
 nbaFromGnba :: (Ord a, Ord b) => GNBA a b -> NBA (a, Int) b
 nbaFromGnba (GNBA a b c d) = NBA nbaStates nbaInit nbaTransitions nbaAccept
     where

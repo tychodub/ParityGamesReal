@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 module TS where
 import Data.Set (Set, toList)
 import Data.List (intercalate)

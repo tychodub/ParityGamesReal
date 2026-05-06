@@ -5,6 +5,8 @@ import Data.Set (Set, toList)
 import Explorer (Explorer(..))
 import qualified Data.Set as Set
 import Dot (Dot(..), showNoQuotes)
+import qualified Data.Sequence as Seq
+import Data.Sequence (mapWithIndex)
 
 data GNBA a b = GNBA { 
     statesGNBA :: Set a,
@@ -29,7 +31,12 @@ instance (Show a, Ord a, Show b) => Dot (GNBA a b) where
     dotNodes :: (Show a, Show b) => GNBA a b -> Set String
     dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\""++ifAccept y) (statesGNBA x)
         where
-            ifAccept y = if any (y `Set.member`) (acceptingGNBA x) then "[shape = doublecircle]" else ""
+            acceptIds = Seq.fromList $ toList $ acceptingGNBA x
+            acceptText y = "\n" ++ Seq.foldMapWithIndex (\n z -> 
+                                if y `Set.member` z then show n++" " else "") acceptIds 
+            ifAccept y = if any (y `Set.member`) (acceptingGNBA x) 
+                then "[shape = doublecircle] [label = \""++showNoQuotes y++acceptText y++"\"]" 
+                else ""
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
                                         "\""++showNoQuotes c++"\"")) (transitionsGNBA x)
