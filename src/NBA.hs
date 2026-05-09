@@ -5,8 +5,9 @@ import Explorer
 import qualified Data.Set as Set
 import GNBA (GNBA (..))
 import qualified Data.Sequence as Seq
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isNothing)
 import Dot (Dot(..), showNoQuotes)
+import TS (TS (..))
 
 data NBA a b = NBA { 
     statesNBA :: Set a,
@@ -48,3 +49,45 @@ nbaFromGnba (GNBA a b c d) = NBA nbaStates nbaInit nbaTransitions nbaAccept
         nbaTransitions = foldMap (\(x,m) -> if x `Set.member` fromJust (finalsList Seq.!? m) 
             then Set.map (\(l,act,r) -> ((l,m),act,(r,m+1 `rem` n))) $ Set.filter (\(l,_,_) -> l == x) c 
             else Set.map (\(l,act,r) -> ((l,m),act,(r,m))) $ Set.filter (\(l,_,_) -> l == x) c ) nbaStates
+
+tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> NBA s c -> NBA (a,s) b 
+tsMul x y = NBA states newInitial transitions finalStates
+    where
+        states = Set.cartesianProduct (tsStates x) (statesNBA y)
+        finalStates = foldMap (\f -> Set.map (\z -> (z,f)) (tsStates x)) (acceptingNBA y) 
+        rightCond s = Set.filter (\(_,z,_) -> z `Set.member` tsLabels x s) (transitionsNBA y) 
+        combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
+        transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (tsTransitions x)
+        initialUnfiltered = Set.cartesianProduct (tsInitial x) (statesNBA y)
+        newInitial = Set.filter (\(s,q) -> 
+            any (\q' -> 
+                any (\l -> 
+                    (q',l,q) `Set.member` (transitionsNBA y)) 
+                    (tsLabels x s)) 
+                    (initialNBA y)) 
+                    initialUnfiltered
+
+data Colour = Cyan | Blue | Red | White deriving (Show, Eq, Ord)
+
+updateColour :: Eq t => (t -> p) -> t -> p -> t -> p
+updateColour f s c = (\x -> if x == s then c else f x)
+
+dfsLasso :: Ord a => NBA a b -> Bool 
+dfsLasso p = any (\s -> isNothing $ dfsBlue p s (\_ -> White)) (initialNBA p)
+
+dfsBlue :: Ord a => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
+dfsBlue p s f = if s `Set.member` (acceptingNBA p) 
+                   then fmap (\h -> updateColour h s Blue) (foldSuccs >>= (dfsRed p s))
+                   else fmap (\h -> updateColour h s Blue) foldSuccs
+    where
+      f' = updateColour f s Cyan
+      foldSuccs = Set.foldl' (\g s' -> case g of (Just g') -> if g' s' == White then dfsBlue p s' g' else pure g'
+                                                 Nothing -> Nothing) (Just f') (successors p s)
+
+dfsRed :: Ord a => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
+dfsRed p s f' = dfsRedHelper (Set.toList $ successors p s) f'
+    where
+        dfsRedHelper [] f = pure f 
+        dfsRedHelper (t:ts) f | f t == Cyan = Nothing
+                              | f t == Blue = dfsRedHelper ts (updateColour f t Red)
+                              | otherwise   = dfsRedHelper ts f

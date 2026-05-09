@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 module LTL where
 import Text.Parsec
 import Text.ParserCombinators.Parsec (Parser)
@@ -24,7 +25,42 @@ data LTL prop = LTAnd (LTL prop) (LTL prop)
               | LTTrue 
               | LTFalse
               | LTTerm prop
-              deriving (Eq, Ord)
+              deriving (Eq, Ord, Functor)
+
+instance Applicative LTL where
+    pure = LTTerm
+    (LTAnd l r) <*> b = LTAnd (l <*> b) (r <*> b)
+    (LTOr l r) <*> b = LTOr (l <*> b) (r <*> b)
+    (LTImpl l r) <*> b = LTImpl (l <*> b) (r <*> b)
+    (LTEqv l r) <*> b = LTEqv (l <*> b) (r <*> b)
+    (LTU l r) <*> b = LTU (l <*> b) (r <*> b)
+    (LTW l r) <*> b = LTW (l <*> b) (r <*> b)
+    (LTR l r) <*> b = LTR (l <*> b) (r <*> b)
+    (LTM l r) <*> b = LTM (l <*> b) (r <*> b)
+    (LTX a) <*> b = LTX (a <*> b) 
+    (LTF a) <*> b = LTF (a <*> b)
+    (LTG a) <*> b = LTG (a <*> b)  
+    (LTNot a) <*> b = LTNot (a <*> b) 
+    LTTrue <*> _ = LTTrue
+    LTFalse <*> _ = LTFalse
+    (LTTerm x) <*> b = fmap x b
+
+instance Monad LTL where
+    (LTAnd l r) >>= f = LTAnd (l >>= f) (r >>= f)
+    (LTOr l r) >>= f = LTOr (l >>= f) (r >>= f)
+    (LTImpl l r) >>= f = LTImpl (l >>= f) (r >>= f)
+    (LTEqv l r) >>= f = LTEqv (l >>= f) (r >>= f)
+    (LTU l r) >>= f = LTU (l >>= f) (r >>= f)
+    (LTW l r) >>= f = LTW (l >>= f) (r >>= f)
+    (LTR l r) >>= f = LTR (l >>= f) (r >>= f)
+    (LTM l r) >>= f = LTM (l >>= f) (r >>= f)
+    (LTX a) >>= f = LTX (a >>= f)
+    (LTF a) >>= f = LTF (a >>= f)
+    (LTG a) >>= f = LTG (a >>= f)
+    (LTNot a) >>= f = LTNot (a >>= f) 
+    LTTrue >>= _ = LTTrue
+    LTFalse >>= _ = LTFalse
+    (LTTerm x) >>= f = f x
 
 instance Show prop => Show (LTL prop) where
     show (LTAnd l r)  = "("++show l++" & "++show r++")"

@@ -17,15 +17,21 @@ instance Arbitrary a => Arbitrary (LTL a) where
 
 main :: IO ()
 main = do 
+  x <- (generate (arbitrary :: Gen (LTL Int)))
+  print x
   quickCheck normalizeIdempotent 
   quickCheck closureMonotone
   quickCheck atomicsInClosure
+  quickCheck closureBounded
 
 normalizeIdempotent :: LTL Int -> Bool
 normalizeIdempotent x = normalize x == normalize (normalize x)
 
 closureMonotone :: LTL Int -> Bool
 closureMonotone x = all (\y -> closure y `Set.isSubsetOf` closure x) (closure x)
+
+closureBounded :: LTL Int -> Bool
+closureBounded x = foldMap closure (closure x) == closure x
 
 atomicsInClosure :: LTL Int -> Bool
 atomicsInClosure x = Set.map LTTerm (getAtomics x) `Set.isSubsetOf` closure (normalize x)
