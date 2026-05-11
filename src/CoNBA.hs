@@ -40,8 +40,8 @@ instance (Show a, Show b, Ord a) => Dot (CoNBA a b) where
                                         "\""++showNoQuotes c++"\"")) (transitionsCoNBA x)
     dotName _ = "conba"
 
-nbaFromGnba :: (Ord a, Ord b) => CoGNBA a b -> CoNBA (a, Int) b
-nbaFromGnba (CoGNBA a b c d) = CoNBA nbaStates nbaInit nbaTransitions nbaAccept
+coNbaFromCoGnba :: (Ord a, Ord b) => CoGNBA a b -> CoNBA (a, Int) b
+coNbaFromCoGnba (CoGNBA a b c d) = CoNBA nbaStates nbaInit nbaTransitions nbaAccept
     where
         n = length d
         finalsList = Seq.fromList $ Set.toList d
