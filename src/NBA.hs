@@ -29,9 +29,12 @@ instance (Ord a) => Explorer (NBA a b) where
     successors nba s = Set.map (\(_,_,y) -> y) $ Set.filter (\(x1,_,_) -> x1 == s) (transitionsNBA nba)
 
 instance (Show a, Show b, Ord a) => Dot (NBA a b) where
-    dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\""++ifAccept y) (statesNBA x)
+    dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\""++ifAccept y++ifInit y) (statesNBA x)
         where
             ifAccept y = if y `Set.member` acceptingNBA x then "[shape = doublecircle]" else ""
+            ifInit y = if y `Set.member` (initialNBA x)
+                then "[color = \"green\"]"
+                else ""
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
                                         "\""++showNoQuotes c++"\"")) (transitionsNBA x)
@@ -50,20 +53,17 @@ nbaFromGnba (GNBA a b c d) = NBA nbaStates nbaInit nbaTransitions nbaAccept
             then Set.map (\(l,act,r) -> ((l,m),act,(r,m+1 `rem` n))) $ Set.filter (\(l,_,_) -> l == x) c 
             else Set.map (\(l,act,r) -> ((l,m),act,(r,m))) $ Set.filter (\(l,_,_) -> l == x) c ) nbaStates
 
-tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> NBA s c -> NBA (a,s) b 
+tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> NBA s (Set c) -> NBA (a,s) b 
 tsMul x y = NBA states newInitial transitions finalStates
     where
         states = Set.cartesianProduct (tsStates x) (statesNBA y)
         finalStates = foldMap (\f -> Set.map (\z -> (z,f)) (tsStates x)) (acceptingNBA y) 
-        rightCond s = Set.filter (\(_,z,_) -> z `Set.member` tsLabels x s) (transitionsNBA y) 
+        rightCond s = Set.filter (\(_,z,_) -> z == tsLabels x s) (transitionsNBA y) 
         combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
         transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (tsTransitions x)
         initialUnfiltered = Set.cartesianProduct (tsInitial x) (statesNBA y)
         newInitial = Set.filter (\(s,q) -> 
-            any (\q' -> 
-                any (\l -> 
-                    (q',l,q) `Set.member` (transitionsNBA y)) 
-                    (tsLabels x s)) 
+            any (\q' -> (q',tsLabels x s,q) `Set.member` (transitionsNBA y)) 
                     (initialNBA y)) 
                     initialUnfiltered
 

@@ -173,7 +173,7 @@ whitespace :: Parser ()
 whitespace = Token.whiteSpace lexer
 
 ignoreWhitespace :: Parser a -> Parser a
-ignoreWhitespace = between whitespace whitespace
+ignoreWhitespace p = spaces *> p <* spaces
 
 identifier :: Parser String
 identifier = Token.identifier lexer
@@ -193,23 +193,19 @@ ltlTerm = parensOr $
           (reserved "false" $> LTFalse) <|>
           (fmap LTTerm identifier)
 
-ltlLvl1 :: Parser (LTL String)
-ltlLvl1 = parensOr $ 
-          try ((reservedOp "~" <|> reservedOp "!") *> fmap LTNot (parensOr ltlLvl1)) <|>
-          try (reserved "X" *> fmap LTX (parensOr ltlLvl1)) <|>
-          ltlTerm
-
 ltlLvl2 :: Parser (LTL String)
 ltlLvl2 = parensOr $ 
-          try (reserved "F" *> fmap LTF ltlLvl2) <|>
-          try (reserved "G" *> fmap LTG ltlLvl2) <|>
-          ltlLvl1
+          try (reserved "F" *> fmap LTF (parensOr ltlLvl2)) <|>
+          try (reserved "G" *> fmap LTG (parensOr ltlLvl2)) <|>
+          try ((try (ignoreWhitespace (char '~')) <|> ignoreWhitespace (char '!')) *> fmap LTNot (parensOr ltlLvl2)) <|>
+          try (reserved "X" *> fmap LTX (parensOr ltlLvl2)) <|>
+          ltlTerm
 
 ltlLvl3 :: Parser (LTL String)
-ltlLvl3 = parensOr $ try (chainl1 ltlLvl2 (reservedOp "&" *> pure LTAnd
-                                <|> reservedOp "|" *> pure LTOr
-                                <|> reservedOp "->" *> pure LTImpl
-                                <|> reservedOp "<->" *> pure LTEqv))
+ltlLvl3 = parensOr $ try (chainl1 ltlLvl2 (reserved "&" *> pure LTAnd
+                                <|> reserved "|" *> pure LTOr
+                                <|> reserved "->" *> pure LTImpl
+                                <|> reserved "<->" *> pure LTEqv))
             <|> ltlLvl2
 
 ltlLvl4 :: Parser (LTL String)
@@ -220,6 +216,9 @@ ltlLvl4 = parensOr $ try (chainr1 ltlLvl3 (reserved "U" *> pure LTU
 
 ltlParser :: Parser (LTL String)
 ltlParser = parensOr ltlLvl4
+
+parseLTL :: String -> Either ParseError (LTL String)
+parseLTL s = parse ltlParser "" s
 
 -- | extremely naive normalization algorithm
 -- | normalizing should be idempotent (TODO: make a QuickCheck test for this)

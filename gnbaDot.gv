@@ -1,101 +1,32 @@
 digraph gnba {
     node [colorscheme = spectral11];
-    "[(a W (b U a)),b]"[shape = doublecircle] [label = "[(a W (b U a)),b]
+    "fromList [(!b U !a),a]"[color = "green"];
+    "fromList [(!b U !a),b]" [shape = doublecircle] [label = "fromList [(!b U !a),b]
+0 "][color = "green"];
+    "fromList [(!b U !a)]" [shape = doublecircle] [label = "fromList [(!b U !a)]
+0 "][color = "green"];
+    "fromList [a,b]" [shape = doublecircle] [label = "fromList [a,b]
 0 "];
-    "[(a W (b U a))]"[shape = doublecircle] [label = "[(a W (b U a))]
+    "fromList [a]" [shape = doublecircle] [label = "fromList [a]
 0 "];
-    "[(b U a),(a W (b U a)),a,b]"[shape = doublecircle] [label = "[(b U a),(a W (b U a)),a,b]
-0 "];
-    "[(b U a),(a W (b U a)),a]"[shape = doublecircle] [label = "[(b U a),(a W (b U a)),a]
-0 "];
-    "[(b U a),(a W (b U a)),b]";
-    "[(b U a),a,b]"[shape = doublecircle] [label = "[(b U a),a,b]
-0 "];
-    "[(b U a),a]"[shape = doublecircle] [label = "[(b U a),a]
-0 "];
-    "[(b U a),b]";
-    "[]"[shape = doublecircle] [label = "[]
-0 "];
-    "[b]"[shape = doublecircle] [label = "[b]
-0 "];
-    "[(a W (b U a)),b]" -> "[(a W (b U a)),b]" [label = "[b]"];
-    "[(a W (b U a)),b]" -> "[(a W (b U a))]" [label = "[b]"];
-    "[(a W (b U a)),b]" -> "[]" [label = "[b]"];
-    "[(a W (b U a)),b]" -> "[b]" [label = "[b]"];
-    "[(a W (b U a))]" -> "[(a W (b U a)),b]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(a W (b U a))]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(b U a),(a W (b U a)),a]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(b U a),(a W (b U a)),b]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(b U a),a,b]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(b U a),a]" [label = "[]"];
-    "[(a W (b U a))]" -> "[(b U a),b]" [label = "[]"];
-    "[(a W (b U a))]" -> "[]" [label = "[]"];
-    "[(a W (b U a))]" -> "[b]" [label = "[]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(a W (b U a)),b]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(a W (b U a))]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(b U a),(a W (b U a)),a]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(b U a),(a W (b U a)),b]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(b U a),a,b]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(b U a),a]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[(b U a),b]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a,b]" -> "[b]" [label = "[a,b]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(a W (b U a)),b]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(a W (b U a))]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(b U a),(a W (b U a)),a]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(b U a),(a W (b U a)),b]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(b U a),a,b]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(b U a),a]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[(b U a),b]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),a]" -> "[b]" [label = "[a]"];
-    "[(b U a),(a W (b U a)),b]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[b]"];
-    "[(b U a),(a W (b U a)),b]" -> "[(b U a),(a W (b U a)),a]" [label = "[b]"];
-    "[(b U a),(a W (b U a)),b]" -> "[(b U a),(a W (b U a)),b]" [label = "[b]"];
-    "[(b U a),(a W (b U a)),b]" -> "[(b U a),a,b]" [label = "[b]"];
-    "[(b U a),(a W (b U a)),b]" -> "[(b U a),a]" [label = "[b]"];
-    "[(b U a),(a W (b U a)),b]" -> "[(b U a),b]" [label = "[b]"];
-    "[(b U a),a,b]" -> "[(a W (b U a)),b]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(a W (b U a))]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(b U a),(a W (b U a)),a]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(b U a),(a W (b U a)),b]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(b U a),a,b]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(b U a),a]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[(b U a),b]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[]" [label = "[a,b]"];
-    "[(b U a),a,b]" -> "[b]" [label = "[a,b]"];
-    "[(b U a),a]" -> "[(a W (b U a)),b]" [label = "[a]"];
-    "[(b U a),a]" -> "[(a W (b U a))]" [label = "[a]"];
-    "[(b U a),a]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[a]"];
-    "[(b U a),a]" -> "[(b U a),(a W (b U a)),a]" [label = "[a]"];
-    "[(b U a),a]" -> "[(b U a),(a W (b U a)),b]" [label = "[a]"];
-    "[(b U a),a]" -> "[(b U a),a,b]" [label = "[a]"];
-    "[(b U a),a]" -> "[(b U a),a]" [label = "[a]"];
-    "[(b U a),a]" -> "[(b U a),b]" [label = "[a]"];
-    "[(b U a),a]" -> "[]" [label = "[a]"];
-    "[(b U a),a]" -> "[b]" [label = "[a]"];
-    "[(b U a),b]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[b]"];
-    "[(b U a),b]" -> "[(b U a),(a W (b U a)),a]" [label = "[b]"];
-    "[(b U a),b]" -> "[(b U a),(a W (b U a)),b]" [label = "[b]"];
-    "[(b U a),b]" -> "[(b U a),a,b]" [label = "[b]"];
-    "[(b U a),b]" -> "[(b U a),a]" [label = "[b]"];
-    "[(b U a),b]" -> "[(b U a),b]" [label = "[b]"];
-    "[]" -> "[(a W (b U a)),b]" [label = "[]"];
-    "[]" -> "[(a W (b U a))]" [label = "[]"];
-    "[]" -> "[(b U a),(a W (b U a)),a,b]" [label = "[]"];
-    "[]" -> "[(b U a),(a W (b U a)),a]" [label = "[]"];
-    "[]" -> "[(b U a),(a W (b U a)),b]" [label = "[]"];
-    "[]" -> "[(b U a),a,b]" [label = "[]"];
-    "[]" -> "[(b U a),a]" [label = "[]"];
-    "[]" -> "[(b U a),b]" [label = "[]"];
-    "[]" -> "[]" [label = "[]"];
-    "[]" -> "[b]" [label = "[]"];
-    "[b]" -> "[(a W (b U a)),b]" [label = "[b]"];
-    "[b]" -> "[(a W (b U a))]" [label = "[b]"];
-    "[b]" -> "[]" [label = "[b]"];
-    "[b]" -> "[b]" [label = "[b]"];
+    "fromList [(!b U !a),a]" -> "fromList [(!b U !a),a]" [label = "fromList [a]"];
+    "fromList [(!b U !a),a]" -> "fromList [(!b U !a),b]" [label = "fromList [a]"];
+    "fromList [(!b U !a),a]" -> "fromList [(!b U !a)]" [label = "fromList [a]"];
+    "fromList [(!b U !a),b]" -> "fromList [(!b U !a),a]" [label = "fromList [b]"];
+    "fromList [(!b U !a),b]" -> "fromList [(!b U !a),b]" [label = "fromList [b]"];
+    "fromList [(!b U !a),b]" -> "fromList [(!b U !a)]" [label = "fromList [b]"];
+    "fromList [(!b U !a),b]" -> "fromList [a,b]" [label = "fromList [b]"];
+    "fromList [(!b U !a),b]" -> "fromList [a]" [label = "fromList [b]"];
+    "fromList [(!b U !a)]" -> "fromList [(!b U !a),a]" [label = "fromList []"];
+    "fromList [(!b U !a)]" -> "fromList [(!b U !a),b]" [label = "fromList []"];
+    "fromList [(!b U !a)]" -> "fromList [(!b U !a)]" [label = "fromList []"];
+    "fromList [(!b U !a)]" -> "fromList [a,b]" [label = "fromList []"];
+    "fromList [(!b U !a)]" -> "fromList [a]" [label = "fromList []"];
+    "fromList [a,b]" -> "fromList [(!b U !a),a]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [(!b U !a),b]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [(!b U !a)]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [a,b]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [a]" [label = "fromList [a,b]"];
+    "fromList [a]" -> "fromList [a,b]" [label = "fromList [a]"];
+    "fromList [a]" -> "fromList [a]" [label = "fromList [a]"];
 }

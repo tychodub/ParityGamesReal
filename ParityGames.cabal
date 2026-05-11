@@ -69,7 +69,10 @@ library
                       NBA,
                       Dot,
                       Kripke,
-                      TS
+                      TS,
+                      Pipeline,
+                      CoNBA,
+                      CoGNBA
 
     -- Modules included in this library but not exported.
     -- other-modules:

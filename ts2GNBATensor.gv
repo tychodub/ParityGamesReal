@@ -1,0 +1,39 @@
+digraph gnba {
+    node [colorscheme = spectral11];
+    "(eat,fromList [(!b U !a),a])";
+    "(eat,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(eat,fromList [(!b U !a),b])
+1 "];
+    "(eat,fromList [(!b U !a)])" [shape = doublecircle] [label = "(eat,fromList [(!b U !a)])
+0 "];
+    "(eat,fromList [a,b])" [shape = doublecircle] [label = "(eat,fromList [a,b])
+3 "];
+    "(eat,fromList [a])" [shape = doublecircle] [label = "(eat,fromList [a])
+2 "];
+    "(otherwise,fromList [(!b U !a),a])"[color = "green"];
+    "(otherwise,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(otherwise,fromList [(!b U !a),b])
+1 "][color = "green"];
+    "(otherwise,fromList [(!b U !a)])" [shape = doublecircle] [label = "(otherwise,fromList [(!b U !a)])
+0 "][color = "green"];
+    "(otherwise,fromList [a,b])" [shape = doublecircle] [label = "(otherwise,fromList [a,b])
+3 "][color = "green"];
+    "(otherwise,fromList [a])" [shape = doublecircle] [label = "(otherwise,fromList [a])
+2 "][color = "green"];
+    "(repeat,fromList [(!b U !a),a])";
+    "(repeat,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(repeat,fromList [(!b U !a),b])
+1 "];
+    "(repeat,fromList [(!b U !a)])" [shape = doublecircle] [label = "(repeat,fromList [(!b U !a)])
+0 "];
+    "(repeat,fromList [a,b])" [shape = doublecircle] [label = "(repeat,fromList [a,b])
+3 "];
+    "(repeat,fromList [a])" [shape = doublecircle] [label = "(repeat,fromList [a])
+2 "];
+    "(sleep,fromList [(!b U !a),a])"[color = "green"];
+    "(sleep,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(sleep,fromList [(!b U !a),b])
+1 "][color = "green"];
+    "(sleep,fromList [(!b U !a)])" [shape = doublecircle] [label = "(sleep,fromList [(!b U !a)])
+0 "][color = "green"];
+    "(sleep,fromList [a,b])" [shape = doublecircle] [label = "(sleep,fromList [a,b])
+3 "];
+    "(sleep,fromList [a])" [shape = doublecircle] [label = "(sleep,fromList [a])
+2 "];
+}

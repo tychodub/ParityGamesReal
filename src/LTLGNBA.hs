@@ -4,7 +4,7 @@ import GNBA
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-fromLTL :: (Show prop, Ord prop) => LTL prop -> GNBA (Set (LTL prop)) (Set prop)
+fromLTL :: Ord prop => LTL prop -> GNBA (Set (LTL prop)) (Set prop)
 fromLTL ltl = GNBA states initialStates transitions finalStates
     where
         atoms = Set.map LTTerm $ getAtomics ltl

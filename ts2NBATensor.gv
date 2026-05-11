@@ -1,0 +1,22 @@
+digraph nba {
+    "(eat,(fromList [(!b U !a),a],0))";
+    "(eat,(fromList [(!b U !a),b],0))"[shape = doublecircle];
+    "(eat,(fromList [(!b U !a)],0))"[shape = doublecircle];
+    "(eat,(fromList [a,b],0))"[shape = doublecircle];
+    "(eat,(fromList [a],0))"[shape = doublecircle];
+    "(otherwise,(fromList [(!b U !a),a],0))"[color = "green"];
+    "(otherwise,(fromList [(!b U !a),b],0))"[shape = doublecircle][color = "green"];
+    "(otherwise,(fromList [(!b U !a)],0))"[shape = doublecircle][color = "green"];
+    "(otherwise,(fromList [a,b],0))"[shape = doublecircle][color = "green"];
+    "(otherwise,(fromList [a],0))"[shape = doublecircle][color = "green"];
+    "(repeat,(fromList [(!b U !a),a],0))";
+    "(repeat,(fromList [(!b U !a),b],0))"[shape = doublecircle];
+    "(repeat,(fromList [(!b U !a)],0))"[shape = doublecircle];
+    "(repeat,(fromList [a,b],0))"[shape = doublecircle];
+    "(repeat,(fromList [a],0))"[shape = doublecircle];
+    "(sleep,(fromList [(!b U !a),a],0))"[color = "green"];
+    "(sleep,(fromList [(!b U !a),b],0))"[shape = doublecircle][color = "green"];
+    "(sleep,(fromList [(!b U !a)],0))"[shape = doublecircle][color = "green"];
+    "(sleep,(fromList [a,b],0))"[shape = doublecircle];
+    "(sleep,(fromList [a],0))"[shape = doublecircle];
+}

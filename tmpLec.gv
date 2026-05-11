@@ -1,0 +1,32 @@
+digraph gnba {
+    node [colorscheme = spectral11];
+    "fromList [(a U b),a,b]" [shape = doublecircle] [label = "fromList [(a U b),a,b]
+0 "][color = "green"];
+    "fromList [(a U b),a]"[color = "green"];
+    "fromList [(a U b),b]" [shape = doublecircle] [label = "fromList [(a U b),b]
+0 "][color = "green"];
+    "fromList []" [shape = doublecircle] [label = "fromList []
+0 "];
+    "fromList [a]" [shape = doublecircle] [label = "fromList [a]
+0 "];
+    "fromList [(a U b),a,b]" -> "fromList [(a U b),a,b]" [label = "fromList [a,b]"];
+    "fromList [(a U b),a,b]" -> "fromList [(a U b),a]" [label = "fromList [a,b]"];
+    "fromList [(a U b),a,b]" -> "fromList [(a U b),b]" [label = "fromList [a,b]"];
+    "fromList [(a U b),a,b]" -> "fromList []" [label = "fromList [a,b]"];
+    "fromList [(a U b),a,b]" -> "fromList [a]" [label = "fromList [a,b]"];
+    "fromList [(a U b),a]" -> "fromList [(a U b),a,b]" [label = "fromList [a]"];
+    "fromList [(a U b),a]" -> "fromList [(a U b),a]" [label = "fromList [a]"];
+    "fromList [(a U b),a]" -> "fromList [(a U b),b]" [label = "fromList [a]"];
+    "fromList [(a U b),b]" -> "fromList [(a U b),a,b]" [label = "fromList [b]"];
+    "fromList [(a U b),b]" -> "fromList [(a U b),a]" [label = "fromList [b]"];
+    "fromList [(a U b),b]" -> "fromList [(a U b),b]" [label = "fromList [b]"];
+    "fromList [(a U b),b]" -> "fromList []" [label = "fromList [b]"];
+    "fromList [(a U b),b]" -> "fromList [a]" [label = "fromList [b]"];
+    "fromList []" -> "fromList [(a U b),a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U b),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U b),b]" [label = "fromList []"];
+    "fromList []" -> "fromList []" [label = "fromList []"];
+    "fromList []" -> "fromList [a]" [label = "fromList []"];
+    "fromList [a]" -> "fromList []" [label = "fromList [a]"];
+    "fromList [a]" -> "fromList [a]" [label = "fromList [a]"];
+}
