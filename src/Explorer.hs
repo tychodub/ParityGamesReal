@@ -7,7 +7,6 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (isNothing)
-import Debug.Trace (trace)
 
 class Explorer (f :: Type) where
     type State f :: Type

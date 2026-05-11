@@ -77,7 +77,7 @@ dfsLasso p = any (\s -> isNothing $ dfsBlue p s (\_ -> White)) (initialNBA p)
 
 dfsBlue :: Ord a => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
 dfsBlue p s f = if s `Set.member` (acceptingNBA p) 
-                   then fmap (\h -> updateColour h s Blue) (foldSuccs >>= (dfsRed p s))
+                   then fmap (\h -> updateColour h s Red) (foldSuccs >>= (dfsRed p s))
                    else fmap (\h -> updateColour h s Blue) foldSuccs
     where
       f' = updateColour f s Cyan

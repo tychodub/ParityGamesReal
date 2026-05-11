@@ -2,14 +2,10 @@
 {-# LANGUAGE InstanceSigs #-}
 module CoGNBA where
 import Data.Set (Set, toList)
-import Explorer (Explorer(..), tarjanNontrivial)
+import Explorer (Explorer(..))
 import qualified Data.Set as Set
 import Dot (Dot(..), showNoQuotes)
 import qualified Data.Sequence as Seq
-import Data.Sequence (mapWithIndex)
-import TS
-import qualified Data.Map as Map
-import Debug.Trace
 
 data CoGNBA a b = CoGNBA { 
     statesCoGNBA :: Set a,
@@ -46,5 +42,5 @@ instance (Show a, Ord a, Show b) => Dot (CoGNBA a b) where
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
                                         "\""++showNoQuotes c++"\"")) (transitionsCoGNBA x)
-    dotName _ = "gnba"
+    dotName _ = "cognba"
     dotpreamble _ = "    node [colorscheme = spectral11];\n"

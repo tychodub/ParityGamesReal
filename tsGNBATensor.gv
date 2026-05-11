@@ -1,75 +1,15 @@
 digraph gnba {
     node [colorscheme = spectral11];
-    "(eat,fromList [(!b U !a),a])";
-    "(eat,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(eat,fromList [(!b U !a),b])
-1 "];
-    "(eat,fromList [(!b U !a)])" [shape = doublecircle] [label = "(eat,fromList [(!b U !a)])
-0 "];
-    "(eat,fromList [a,b])" [shape = doublecircle] [label = "(eat,fromList [a,b])
-3 "];
-    "(eat,fromList [a])" [shape = doublecircle] [label = "(eat,fromList [a])
-2 "];
-    "(repeat,fromList [(!b U !a),a])";
-    "(repeat,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(repeat,fromList [(!b U !a),b])
-1 "];
-    "(repeat,fromList [(!b U !a)])" [shape = doublecircle] [label = "(repeat,fromList [(!b U !a)])
-0 "];
-    "(repeat,fromList [a,b])" [shape = doublecircle] [label = "(repeat,fromList [a,b])
-3 "];
-    "(repeat,fromList [a])" [shape = doublecircle] [label = "(repeat,fromList [a])
-2 "];
-    "(sleep,fromList [(!b U !a),a])"[color = "green"];
-    "(sleep,fromList [(!b U !a),b])" [shape = doublecircle] [label = "(sleep,fromList [(!b U !a),b])
-1 "][color = "green"];
-    "(sleep,fromList [(!b U !a)])" [shape = doublecircle] [label = "(sleep,fromList [(!b U !a)])
-0 "][color = "green"];
-    "(sleep,fromList [a,b])" [shape = doublecircle] [label = "(sleep,fromList [a,b])
-3 "][color = "green"];
-    "(sleep,fromList [a])" [shape = doublecircle] [label = "(sleep,fromList [a])
-2 "][color = "green"];
-    "(eat,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a),a])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a),b])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a)])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(eat,fromList [a,b])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(eat,fromList [a])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a),a])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a),b])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a)])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(repeat,fromList [a,b])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(repeat,fromList [a])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a),a])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a),b])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a)])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(sleep,fromList [a,b])" [label = "()"];
-    "(eat,fromList [(!b U !a),b])" -> "(sleep,fromList [a])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a),a])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a),b])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a)])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(eat,fromList [a,b])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(eat,fromList [a])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a),a])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a),b])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a)])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(repeat,fromList [a,b])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(repeat,fromList [a])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a),a])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a),b])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a)])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(sleep,fromList [a,b])" [label = "()"];
-    "(repeat,fromList [(!b U !a),b])" -> "(sleep,fromList [a])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a),a])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a),b])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(eat,fromList [(!b U !a)])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(eat,fromList [a,b])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(eat,fromList [a])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a),a])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a),b])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(repeat,fromList [(!b U !a)])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(repeat,fromList [a,b])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(repeat,fromList [a])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a),a])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a),b])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(sleep,fromList [(!b U !a)])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(sleep,fromList [a,b])" [label = "()"];
-    "(sleep,fromList [(!b U !a),b])" -> "(sleep,fromList [a])" [label = "()"];
+    "(eat,fromList [F !a,a])";
+    "(eat,fromList [F !a])";
+    "(eat,fromList [])";
+    "(eat,fromList [a])";
+    "(repeat,fromList [F !a,a])";
+    "(repeat,fromList [F !a])";
+    "(repeat,fromList [])";
+    "(repeat,fromList [a])";
+    "(sleep,fromList [F !a,a])";
+    "(sleep,fromList [F !a])";
+    "(sleep,fromList [])";
+    "(sleep,fromList [a])";
 }

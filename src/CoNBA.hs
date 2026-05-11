@@ -7,6 +7,7 @@ import qualified Data.Set as Set
 import Dot (Dot(..), showNoQuotes)
 import CoGNBA (CoGNBA (CoGNBA))
 import qualified Data.Sequence as Seq
+import Data.Maybe (fromJust)
 
 data CoNBA a b = CoNBA { 
     statesCoNBA :: Set a,
@@ -37,15 +38,16 @@ instance (Show a, Show b, Ord a) => Dot (CoNBA a b) where
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
                                         "\""++showNoQuotes c++"\"")) (transitionsCoNBA x)
-    dotName _ = "nba"
+    dotName _ = "conba"
 
--- | creates a n-fold disjoint union where n is the amount of rejecting sets
-coNbaFromCoGnba :: (Ord a, Ord b) => CoGNBA a b -> CoNBA (a, Int) b
-coNbaFromCoGnba (CoGNBA a b c d) = CoNBA coNbaStates coNbaInit coNbaTransitions coNbaReject
+nbaFromGnba :: (Ord a, Ord b) => CoGNBA a b -> CoNBA (a, Int) b
+nbaFromGnba (CoGNBA a b c d) = CoNBA nbaStates nbaInit nbaTransitions nbaAccept
     where
         n = length d
-        nSet = Set.fromList [0..n-1]
-        coNbaStates = Set.cartesianProduct a nSet
-        coNbaInit = Set.cartesianProduct b nSet
-        coNbaTransitions = foldMap (\i -> Set.map (\(l,sigma,r) -> ((l,i),sigma,(r,i))) c) nSet
-        coNbaReject = Seq.foldMapWithIndex (\i s -> Set.map (\x -> (x,i)) s) (Seq.fromList $ Set.toList d)
+        finalsList = Seq.fromList $ Set.toList d
+        nbaInit = Set.map (\x -> (x, 0)) b
+        nbaAccept = if n > 0 then Set.map (\x -> (x,0)) $ fromJust (finalsList Seq.!? 0) else Set.empty
+        nbaStates = foldMap (\x -> Set.fromList ((,) x <$> [0..n-1])) a
+        nbaTransitions = foldMap (\(x,m) -> if x `Set.member` fromJust (finalsList Seq.!? m) 
+            then Set.map (\(l,act,r) -> ((l,m),act,(r,m+1 `rem` n))) $ Set.filter (\(l,_,_) -> l == x) c 
+            else Set.map (\(l,act,r) -> ((l,m),act,(r,m))) $ Set.filter (\(l,_,_) -> l == x) c ) nbaStates

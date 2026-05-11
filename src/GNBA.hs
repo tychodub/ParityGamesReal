@@ -6,7 +6,6 @@ import Explorer (Explorer(..), tarjanNontrivial)
 import qualified Data.Set as Set
 import Dot (Dot(..), showNoQuotes)
 import qualified Data.Sequence as Seq
-import Data.Sequence (mapWithIndex)
 import TS
 import qualified Data.Map as Map
 import Debug.Trace
