@@ -260,14 +260,20 @@ locallyConsistent s (LTAnd l r) = (l `elemLTL` s && r `elemLTL` s) == ((LTAnd l 
 locallyConsistent s (LTOr l r) = (l `elemLTL` s || r `elemLTL` s) == ((LTOr l r) `Set.member` s)
 locallyConsistent s (LTImpl l r) = (not (l `elemLTL` s) || r `elemLTL` s) == ((LTImpl l r) `Set.member` s)
 locallyConsistent s (LTEqv l r) = ((l `elemLTL` s) == (r `elemLTL` s)) == ((LTEqv l r) `Set.member` s)
-locallyConsistent s (LTU l r) = if (r `elemLTL` s) 
+locallyConsistent s (LTU l r) = (if (r `elemLTL` s) 
                                     then (LTU l r `Set.member` s) 
-                                    else (if (LTU l r `Set.member` s)
+                                    else True)
+                                    &&
+                                (if (LTU l r `Set.member` s) && not (r `elemLTL` s)
                                               then (l `elemLTL` s)
                                               else True)
-locallyConsistent s (LTR l r) = if (l `elemLTL` s && r `elemLTL` s)
+locallyConsistent s (LTR l r) = (if (l `elemLTL` s && r `elemLTL` s)
                                    then (LTR l r `Set.member` s)
-                                   else (if (LTR l r `Set.member` s && not (l `elemLTL` s)) then r `elemLTL` s else True)
+                                   else True)
+                                   &&
+                                (if LTR l r `Set.member` s
+                                    then r `elemLTL` s 
+                                    else True)
 locallyConsistent _ _ = True
 
 consistentSubsetsLTL :: Ord prop => Set (LTL prop) -> Set (Set (LTL prop))

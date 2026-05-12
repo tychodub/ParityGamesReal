@@ -16,7 +16,7 @@ data CoGNBA a b = CoGNBA {
 
 instance (Eq a, Show a, Show b) => Show (CoGNBA a b) where
     show gnba = "states: "++concatMap (\x -> show x++i x++", ") (statesCoGNBA gnba)++"\ntransitions:\n"
-                ++concatMap (\x -> show x++",\n") ((transitionsCoGNBA gnba))++"accepting: "
+                ++concatMap (\x -> show x++",\n") ((transitionsCoGNBA gnba))++"rejecting: "
                 ++show (toList (rejectingCoGNBA gnba))
         where
             i x = if x `elem` (initialCoGNBA gnba) then " (i)" else ""

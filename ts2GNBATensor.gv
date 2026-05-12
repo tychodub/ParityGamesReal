@@ -1,19 +1,43 @@
 digraph gnba {
     node [colorscheme = spectral11];
-    "(eat,fromList [F !a,a])";
-    "(eat,fromList [F !a])";
-    "(eat,fromList [])";
-    "(eat,fromList [a])";
-    "(otherwise,fromList [F !a,a])";
-    "(otherwise,fromList [F !a])";
-    "(otherwise,fromList [])";
-    "(otherwise,fromList [a])";
-    "(repeat,fromList [F !a,a])";
-    "(repeat,fromList [F !a])";
-    "(repeat,fromList [])";
-    "(repeat,fromList [a])";
-    "(sleep,fromList [F !a,a])"[color = "green"];
-    "(sleep,fromList [F !a])"[color = "green"];
-    "(sleep,fromList [])"[color = "green"];
-    "(sleep,fromList [a])"[color = "green"];
+    "(eat,fromList [(!a & b),(a U (!a & b)),b])" [shape = doublecircle] [label = "(eat,fromList [(!a & b),(a U (!a & b)),b])
+1 "];
+    "(eat,fromList [(a U (!a & b)),a,b])";
+    "(eat,fromList [(a U (!a & b)),a])";
+    "(eat,fromList [])" [shape = doublecircle] [label = "(eat,fromList [])
+0 "];
+    "(eat,fromList [a,b])" [shape = doublecircle] [label = "(eat,fromList [a,b])
+3 "];
+    "(eat,fromList [a])" [shape = doublecircle] [label = "(eat,fromList [a])
+2 "];
+    "(otherwise,fromList [(!a & b),(a U (!a & b)),b])" [shape = doublecircle] [label = "(otherwise,fromList [(!a & b),(a U (!a & b)),b])
+1 "][color = "green"];
+    "(otherwise,fromList [(a U (!a & b)),a,b])"[color = "green"];
+    "(otherwise,fromList [(a U (!a & b)),a])"[color = "green"];
+    "(otherwise,fromList [])" [shape = doublecircle] [label = "(otherwise,fromList [])
+0 "][color = "green"];
+    "(otherwise,fromList [a,b])" [shape = doublecircle] [label = "(otherwise,fromList [a,b])
+3 "][color = "green"];
+    "(otherwise,fromList [a])" [shape = doublecircle] [label = "(otherwise,fromList [a])
+2 "][color = "green"];
+    "(repeat,fromList [(!a & b),(a U (!a & b)),b])" [shape = doublecircle] [label = "(repeat,fromList [(!a & b),(a U (!a & b)),b])
+1 "];
+    "(repeat,fromList [(a U (!a & b)),a,b])";
+    "(repeat,fromList [(a U (!a & b)),a])";
+    "(repeat,fromList [])" [shape = doublecircle] [label = "(repeat,fromList [])
+0 "];
+    "(repeat,fromList [a,b])" [shape = doublecircle] [label = "(repeat,fromList [a,b])
+3 "];
+    "(repeat,fromList [a])" [shape = doublecircle] [label = "(repeat,fromList [a])
+2 "];
+    "(sleep,fromList [(!a & b),(a U (!a & b)),b])" [shape = doublecircle] [label = "(sleep,fromList [(!a & b),(a U (!a & b)),b])
+1 "][color = "green"];
+    "(sleep,fromList [(a U (!a & b)),a,b])"[color = "green"];
+    "(sleep,fromList [(a U (!a & b)),a])"[color = "green"];
+    "(sleep,fromList [])" [shape = doublecircle] [label = "(sleep,fromList [])
+0 "];
+    "(sleep,fromList [a,b])" [shape = doublecircle] [label = "(sleep,fromList [a,b])
+3 "];
+    "(sleep,fromList [a])" [shape = doublecircle] [label = "(sleep,fromList [a])
+2 "];
 }

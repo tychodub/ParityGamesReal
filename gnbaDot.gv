@@ -1,23 +1,37 @@
 digraph gnba {
     node [colorscheme = spectral11];
-    "fromList [F !a,a]"[color = "green"];
-    "fromList [F !a]"[color = "green"];
-    "fromList []";
-    "fromList [a]";
-    "fromList [F !a,a]" -> "fromList [F !a,a]" [label = "fromList [a]"];
-    "fromList [F !a,a]" -> "fromList [F !a]" [label = "fromList [a]"];
-    "fromList [F !a,a]" -> "fromList []" [label = "fromList [a]"];
-    "fromList [F !a,a]" -> "fromList [a]" [label = "fromList [a]"];
-    "fromList [F !a]" -> "fromList [F !a,a]" [label = "fromList []"];
-    "fromList [F !a]" -> "fromList [F !a]" [label = "fromList []"];
-    "fromList [F !a]" -> "fromList []" [label = "fromList []"];
-    "fromList [F !a]" -> "fromList [a]" [label = "fromList []"];
-    "fromList []" -> "fromList [F !a,a]" [label = "fromList []"];
-    "fromList []" -> "fromList [F !a]" [label = "fromList []"];
+    "fromList [(!a & b),(a U (!a & b)),b]" [shape = doublecircle] [label = "fromList [(!a & b),(a U (!a & b)),b]
+0 "][color = "green"];
+    "fromList [(a U (!a & b)),a,b]"[color = "green"];
+    "fromList [(a U (!a & b)),a]"[color = "green"];
+    "fromList []" [shape = doublecircle] [label = "fromList []
+0 "];
+    "fromList [a,b]" [shape = doublecircle] [label = "fromList [a,b]
+0 "];
+    "fromList [a]" [shape = doublecircle] [label = "fromList [a]
+0 "];
+    "fromList [(!a & b),(a U (!a & b)),b]" -> "fromList [(!a & b),(a U (!a & b)),b]" [label = "fromList [b]"];
+    "fromList [(!a & b),(a U (!a & b)),b]" -> "fromList [(a U (!a & b)),a,b]" [label = "fromList [b]"];
+    "fromList [(!a & b),(a U (!a & b)),b]" -> "fromList [(a U (!a & b)),a]" [label = "fromList [b]"];
+    "fromList [(!a & b),(a U (!a & b)),b]" -> "fromList []" [label = "fromList [b]"];
+    "fromList [(!a & b),(a U (!a & b)),b]" -> "fromList [a,b]" [label = "fromList [b]"];
+    "fromList [(!a & b),(a U (!a & b)),b]" -> "fromList [a]" [label = "fromList [b]"];
+    "fromList [(a U (!a & b)),a,b]" -> "fromList [(!a & b),(a U (!a & b)),b]" [label = "fromList [a,b]"];
+    "fromList [(a U (!a & b)),a,b]" -> "fromList [(a U (!a & b)),a,b]" [label = "fromList [a,b]"];
+    "fromList [(a U (!a & b)),a,b]" -> "fromList [(a U (!a & b)),a]" [label = "fromList [a,b]"];
+    "fromList [(a U (!a & b)),a]" -> "fromList [(!a & b),(a U (!a & b)),b]" [label = "fromList [a]"];
+    "fromList [(a U (!a & b)),a]" -> "fromList [(a U (!a & b)),a,b]" [label = "fromList [a]"];
+    "fromList [(a U (!a & b)),a]" -> "fromList [(a U (!a & b)),a]" [label = "fromList [a]"];
+    "fromList []" -> "fromList [(!a & b),(a U (!a & b)),b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (!a & b)),a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (!a & b)),a]" [label = "fromList []"];
     "fromList []" -> "fromList []" [label = "fromList []"];
+    "fromList []" -> "fromList [a,b]" [label = "fromList []"];
     "fromList []" -> "fromList [a]" [label = "fromList []"];
-    "fromList [a]" -> "fromList [F !a,a]" [label = "fromList [a]"];
-    "fromList [a]" -> "fromList [F !a]" [label = "fromList [a]"];
+    "fromList [a,b]" -> "fromList []" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [a,b]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [a]" [label = "fromList [a,b]"];
     "fromList [a]" -> "fromList []" [label = "fromList [a]"];
+    "fromList [a]" -> "fromList [a,b]" [label = "fromList [a]"];
     "fromList [a]" -> "fromList [a]" [label = "fromList [a]"];
 }

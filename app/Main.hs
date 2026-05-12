@@ -11,7 +11,7 @@ import Text.Parsec.Prim (parse)
 import Data.Either (fromRight)
 import Data.Foldable (Foldable(toList))
 import LTLGNBA (fromLTL)
-import GNBA (gnbaBimap, GNBA (transitionsGNBA))
+import GNBA (gnbaBimap, GNBA (transitionsGNBA), initialGNBA, acceptingGNBA)
 import NBA (nbaFromGnba, NBA (transitionsNBA), tsMul, dfsLasso)
 import Dot (genDot)
 import TS (completeTS, discreteTS, TS (tsInitial))
@@ -60,7 +60,6 @@ main = do
   let ts2TensorGNBA = GNBA.tsMul ts2 ltlgnba
   let ts2TensorGNBADot = genDot ts2TensorGNBA
   writeFile "ts2GNBATensor.gv" ts2TensorGNBADot
-  print (Set.map (tarjanNontrivial ts) (tsInitial ts))
   writeFile "tmpLec.gv" (genDot (fromLTL (LTU (LTTerm "a") (LTTerm "b"))))
 
   -- print (length (explore (LeftForkFirst 11)))

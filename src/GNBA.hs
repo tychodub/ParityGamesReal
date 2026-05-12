@@ -70,9 +70,9 @@ tsMul x y = GNBA states newInitial transitions finalStates
                     (initialGNBA y)) 
                     initialUnfiltered
 
-gnbaAccepting :: (Ord a, Show a) => GNBA a b -> Bool
-gnbaAccepting x = trace ("tarj: " ++ show tarj) $ any sccCheck tarj
+gnbaAccepting :: Ord a => GNBA a b -> Bool
+gnbaAccepting x = not (null (acceptingGNBA x)) && any sccCheck tarj
     where
         tarj = Set.map (tarjanNontrivial x) (initialGNBA x)
-        sccCheck parts = any (\part -> trace ("part: " ++ show part) $ all (any (\f -> Set.member f part)) (acceptingGNBA x)) 
+        sccCheck parts = any (\part -> all (any (\f -> Set.member f part)) (acceptingGNBA x)) 
                              (Map.elems parts)
