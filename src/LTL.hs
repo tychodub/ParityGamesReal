@@ -184,41 +184,59 @@ parens = Token.parens lexer
 reserved :: String -> Parser ()
 reserved = Token.reserved lexer
 
-parensOr :: Parser (LTL String) -> Parser (LTL String)
-parensOr p = try p <|> parens ltlLvl4
+integer :: Parser Integer
+integer = Token.integer lexer
 
-ltlTerm :: Parser (LTL String)
-ltlTerm = parensOr $ 
+parensOr :: Parser prop ->  Parser (LTL prop) -> Parser (LTL prop)
+parensOr p' p = try p <|> parens (ltlLvl4 p')
+
+ltlTerm :: Parser prop -> Parser (LTL prop)
+ltlTerm p = parensOr p $ 
           (reserved "true" $> LTTrue) <|>
           (reserved "false" $> LTFalse) <|>
-          (fmap LTTerm identifier)
+          (fmap LTTerm p)
 
-ltlLvl2 :: Parser (LTL String)
-ltlLvl2 = parensOr $ 
-          try (reserved "F" *> fmap LTF (parensOr ltlLvl2)) <|>
-          try (reserved "G" *> fmap LTG (parensOr ltlLvl2)) <|>
-          try ((try (ignoreWhitespace (char '~')) <|> ignoreWhitespace (char '!')) *> fmap LTNot (parensOr ltlLvl2)) <|>
-          try (reserved "X" *> fmap LTX (parensOr ltlLvl2)) <|>
-          ltlTerm
+ltlLvl2 :: Parser prop -> Parser (LTL prop)
+ltlLvl2 p = parensOr p $ 
+          try (reserved "F" *> fmap LTF (parensOr p (ltlLvl2 p))) <|>
+          try (reserved "G" *> fmap LTG (parensOr p (ltlLvl2 p))) <|>
+          try ((try (ignoreWhitespace (char '~')) <|> ignoreWhitespace (char '!')) *> fmap LTNot (parensOr p (ltlLvl2 p))) <|>
+          try (reserved "X" *> fmap LTX (parensOr p (ltlLvl2 p))) <|>
+          ltlTerm p
 
-ltlLvl3 :: Parser (LTL String)
-ltlLvl3 = parensOr $ try (chainl1 ltlLvl2 (reserved "&" *> pure LTAnd
+ltlLvl3 :: Parser prop -> Parser (LTL prop)
+ltlLvl3 p = parensOr p $ try (chainl1 (ltlLvl2 p) (reserved "&" *> pure LTAnd
                                 <|> reserved "|" *> pure LTOr
                                 <|> reserved "->" *> pure LTImpl
                                 <|> reserved "<->" *> pure LTEqv))
-            <|> ltlLvl2
+            <|> (ltlLvl2 p)
 
-ltlLvl4 :: Parser (LTL String)
-ltlLvl4 = parensOr $ try (chainr1 ltlLvl3 (reserved "U" *> pure LTU
-                                  <|> reserved "W" *> pure LTW
-                                  <|> reserved "R" *> pure LTR
-                                  <|> reserved "M" *> pure LTM))
+ltlLvl4 :: Parser prop -> Parser (LTL prop)
+ltlLvl4 p = parensOr p $ try (chainr1 (ltlLvl3 p) (reserved "U" *> pure LTU
+                                    <|> reserved "W" *> pure LTW
+                                    <|> reserved "R" *> pure LTR
+                                    <|> reserved "M" *> pure LTM))
 
 ltlParser :: Parser (LTL String)
-ltlParser = parensOr ltlLvl4
+ltlParser = parensOr identifier (ltlLvl4 identifier)
+
+ltlParserWith :: Parser prop -> Parser (LTL prop)
+ltlParserWith p = parensOr p (ltlLvl4 p)
+
+ltlParserInt :: Parser (LTL Integer)
+ltlParserInt = parensOr integer (ltlLvl4 integer)
 
 parseLTL :: String -> Either ParseError (LTL String)
 parseLTL s = parse ltlParser "" s
+
+simplifyLtl :: LTL prop -> LTL prop
+simplifyLtl (LTG (LTG x)) = simplifyLtl (LTG x)
+simplifyLtl (LTF (LTF x)) = simplifyLtl (LTF x)
+simplifyLtl (LTF (LTG (LTF x))) = simplifyLtl (LTG (LTF x))
+simplifyLtl (LTG (LTF (LTG x))) = simplifyLtl (LTF (LTG x))
+simplifyLtl (LTF (LTOr a b)) = simplifyLtl (LTOr (LTF a) (LTF b))
+simplifyLtl (LTG (LTAnd a b)) = simplifyLtl (LTAnd (LTG a) (LTG b))
+simplifyLtl x = recurse1LTL simplifyLtl x
 
 -- | extremely naive normalization algorithm
 -- | normalizing should be idempotent (TODO: make a QuickCheck test for this)
@@ -226,17 +244,21 @@ normalize :: LTL prop -> LTL prop
 normalize (LTNot LTTrue) = LTFalse
 normalize (LTNot LTFalse) = LTTrue
 normalize (LTNot (LTNot a)) = normalize a -- assumes LTL is a classical logic
-normalize (LTNot (LTG a)) = LTF (normalize $ LTNot a)
-normalize (LTNot (LTF a)) = LTG (normalize $ LTNot a)
+normalize (LTNot (LTG a)) = normalize $ LTF (LTNot a)
+normalize (LTNot (LTF a)) = normalize $ LTG (LTNot a)
 normalize (LTNot (LTX a)) = LTX (normalize $ LTNot a)
 normalize (LTNot (LTU a b)) = LTR (normalize $ LTNot a) (normalize $ LTNot b)
-normalize (LTNot (LTW a b)) = normalize $ LTNot $ LTAnd (LTNot (LTU a b)) (LTF (LTNot a)) -- forlater steps I remove the W and M operators
+normalize (LTNot (LTW a b)) = normalize $ LTM (LTNot a) (LTNot b)
 normalize (LTNot (LTR a b)) = LTU (normalize $ LTNot a) (normalize $ LTNot b)
-normalize (LTNot (LTM a b)) = normalize (LTNot $ LTU b (LTAnd a b))
+normalize (LTNot (LTM a b)) = normalize $ LTW (LTNot a) (LTNot b)
 normalize (LTNot (LTAnd a b)) = LTOr (normalize $ LTNot a) (normalize $ LTNot b)
 normalize (LTNot (LTOr a b)) = LTAnd (normalize $ LTNot a) (normalize $ LTNot b)
 normalize (LTNot (LTImpl a b)) = LTAnd (normalize a) (normalize $ LTNot b)
 normalize (LTNot (LTEqv a b)) = LTOr (LTAnd (normalize a) (normalize $ LTNot b)) (LTAnd (normalize $ LTNot a) (normalize b))
+normalize (LTF a) = normalize $ LTU LTTrue a
+normalize (LTG a) = normalize $ LTR LTFalse a
+normalize (LTW a b) = normalize $ LTR b (LTOr a b)
+normalize (LTM a b) = normalize $ LTU b (LTAnd a b)
 normalize x = recurse1LTL normalize x
 
 closure :: Ord prop => LTL prop -> Set (LTL prop)
@@ -254,8 +276,9 @@ elemLTL x s = x `Set.member` s
 -- | takes a set indicating true propositions and a proposition, 
 --   returns whether the proposition is locally consistent with the truth state
 locallyConsistent :: Ord prop => Set (LTL prop) -> LTL prop -> Bool
-locallyConsistent _ LTFalse = False
-locallyConsistent _ LTTrue = True
+locallyConsistent s LTFalse = not (LTFalse `Set.member` s)
+locallyConsistent s LTTrue = LTTrue `Set.member` s
+locallyConsistent _ (LTTerm _) = True
 locallyConsistent s (LTAnd l r) = (l `elemLTL` s && r `elemLTL` s) == ((LTAnd l r) `Set.member` s)
 locallyConsistent s (LTOr l r) = (l `elemLTL` s || r `elemLTL` s) == ((LTOr l r) `Set.member` s)
 locallyConsistent s (LTImpl l r) = (not (l `elemLTL` s) || r `elemLTL` s) == ((LTImpl l r) `Set.member` s)
@@ -274,7 +297,12 @@ locallyConsistent s (LTR l r) = (if (l `elemLTL` s && r `elemLTL` s)
                                 (if LTR l r `Set.member` s
                                     then r `elemLTL` s 
                                     else True)
-locallyConsistent _ _ = True
+locallyConsistent _ (LTX _) = True
+locallyConsistent _ (LTNot _) = True
+locallyConsistent _ (LTW _ _) = error "local consistency check not defined for W"
+locallyConsistent _ (LTM _ _) = error "local consistency check not defined for M"
+locallyConsistent _ (LTF _)   = error "local consistency check not defined for F"
+locallyConsistent _ (LTG _)   = error "local consistency check not defined for G"
 
 consistentSubsetsLTL :: Ord prop => Set (LTL prop) -> Set (Set (LTL prop))
 consistentSubsetsLTL s = Set.filter (\candidate -> all (locallyConsistent candidate) s) allCandidates

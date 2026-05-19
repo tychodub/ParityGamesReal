@@ -72,7 +72,8 @@ library
                       TS,
                       Pipeline,
                       CoNBA,
-                      CoGNBA
+                      CoGNBA,
+                      VWAA
 
     -- Modules included in this library but not exported.
     -- other-modules:

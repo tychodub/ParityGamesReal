@@ -8,7 +8,6 @@ import Dot (Dot(..), showNoQuotes)
 import qualified Data.Sequence as Seq
 import TS
 import qualified Data.Map as Map
-import Debug.Trace
 
 data GNBA a b = GNBA { 
     statesGNBA :: Set a,
@@ -55,12 +54,12 @@ gnbaBimap f g (GNBA a b c d) = GNBA (Set.map f a)
                                     (Set.map (Set.map f) d)
 
 -- currently each accepting set {F1,F2,F3} becomes an accepting s `cartesianProduct` {F1,F2,F3}
-tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> GNBA s (Set c) -> GNBA (a,s) b 
-tsMul x y = GNBA states newInitial transitions finalStates
+tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> GNBA s (Set c) -> Set c -> GNBA (a,s) b 
+tsMul x y atomics = GNBA states newInitial transitions finalStates
     where
         states = Set.cartesianProduct (tsStates x) (statesGNBA y)
-        finalStates = foldMap (Set.map (\f -> Set.map (\z -> (z,f)) (tsStates x))) (acceptingGNBA y) 
-        rightCond s = Set.filter (\(_,z,_) -> z == tsLabels x s) (transitionsGNBA y) 
+        finalStates = Set.map (foldMap (\f -> Set.map (\z -> (z,f)) (tsStates x))) (acceptingGNBA y) 
+        rightCond s = Set.filter (\(_,z,_) -> z == Set.intersection atomics (tsLabels x s)) (transitionsGNBA y) 
         combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
         -- transitions are correct
         transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (tsTransitions x)
@@ -71,8 +70,8 @@ tsMul x y = GNBA states newInitial transitions finalStates
                     initialUnfiltered
 
 gnbaAccepting :: Ord a => GNBA a b -> Bool
-gnbaAccepting x = not (null (acceptingGNBA x)) && any sccCheck tarj
+gnbaAccepting x = any sccCheck tarj 
     where
         tarj = Set.map (tarjanNontrivial x) (initialGNBA x)
-        sccCheck parts = any (\part -> all (any (\f -> Set.member f part)) (acceptingGNBA x)) 
+        sccCheck parts = any (\part -> all (\accs -> any (\x' -> x' `Set.member` accs) part) (acceptingGNBA x)) 
                              (Map.elems parts)

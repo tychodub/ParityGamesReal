@@ -7,6 +7,7 @@ import Data.Char (isAlpha)
 import Dot (showNoQuotes)
 import TS
 import Data.Maybe (fromJust)
+import Pipeline (nbaLTLCheck, nbaLTLCheck2, gnbaLTLCheck)
 
 instance Arbitrary a => Arbitrary (LTL a) where
   arbitrary = sized ltlArb
@@ -24,27 +25,39 @@ newtype LTLChar = LTLChar Char deriving (Show, Eq)
 instance Arbitrary LTLChar where
   arbitrary = oneof $ fmap (pure . LTLChar) ['a'..'z']
 
+sizedArb :: (Ord b, Ord a, Ord c, Arbitrary a, Arbitrary b, Arbitrary c) => Int -> Gen (TS a b c)
+sizedArb n = do -- TS <$> states >>= initial <*> transitions <*> stateLabels
+               sts <- states
+               initsts <- initial sts
+               let sts' = Set.fromList sts
+               transts <- transitions sts'
+               TS sts' initsts transts <$> (stateLabels sts)
+    where
+      states = vector (max n 20)
+      initial s = Set.fromList <$> (sublistOf s)
+      transitions' s = sublistOf (Set.toList (Set.cartesianProduct s s)) 
+      transitions s = Set.fromList <$> ((transitions' s) >>= (\xs -> traverse (\(l,r) -> fmap (\z -> (l,z,r)) arbitrary) xs))
+      stateLabels' s =  traverse (\z -> (\y -> (z,y)) <$> arbitrary) s
+      stateLabels s = fmap listToFun (stateLabels' s)
+      listToFun xs a = case lookup a xs of Just x -> x; Nothing -> Set.empty
+
 instance (Arbitrary a, Arbitrary b, Ord a, Ord b, Ord c, Arbitrary c) => Arbitrary (TS a b c) where
-  arbitrary = TS <$> states <*> initial <*> transitions <*> stateLabels
-      where
-        states' = arbitrary
-        states = Set.fromList <$> states'
-        initial = Set.fromList <$> (states' >>= sublistOf)
-        transitions' = (Set.toList <$> (Set.cartesianProduct <$> states <*> states)) >>= sublistOf
-        transitions = fmap Set.fromList (transitions' >>= (traverse (\(l,r) -> (\z -> (l,z,r)) <$> arbitrary)))
-        stateLabels' = states' >>= traverse (\z -> (\y -> (z,y)) <$> arbitrary)
-        stateLabels = fmap listToFun stateLabels'
-        listToFun xs a = case lookup a xs of Just x -> x; Nothing -> Set.empty
+  arbitrary = sized sizedArb
+        
 
 main :: IO ()
 main = do 
-  x <- generate (arbitrary :: Gen (TS Int Int Int))
-  print x
+  --x <- generate (arbitrary :: Gen (TS Int Int Int))
+  --print x
   quickCheck normalizeIdempotent 
   quickCheck closureMonotone
   quickCheck atomicsInClosure
   quickCheck closureBounded
   quickCheck showParse
+  quickCheckWith (sizeArg 12) consistentNBAChecks
+  quickCheckWith (sizeArg 12) consistentNBAGNBACheck
+  where
+    sizeArg n = Args (replay stdArgs) (maxSuccess stdArgs) (maxDiscardRatio stdArgs) n (chatty stdArgs) 2 -- what is this last int?
 
 normalizeIdempotent :: LTL Int -> Bool
 normalizeIdempotent x = normalize x == normalize (normalize x)
@@ -64,3 +77,9 @@ showParse x = all (not . null) (getAtomics x') ==> case parseLTL (showNoQuotes x
                    Right y -> counterexample "muck" (x' == y)
       where
         x' = fmap (fmap (\(LTLChar y) -> y)) x
+
+consistentNBAChecks :: TS Int Int Int -> LTL Int -> Bool
+consistentNBAChecks x y = nbaLTLCheck x y == nbaLTLCheck2 x y
+
+consistentNBAGNBACheck :: TS Int Int Int -> LTL Int -> Bool
+consistentNBAGNBACheck x y = nbaLTLCheck x y == gnbaLTLCheck x y

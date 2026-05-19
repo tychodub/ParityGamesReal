@@ -5,6 +5,12 @@ import Data.List (intercalate)
 import qualified Data.Set as Set
 import Dot (Dot(..), showNoQuotes)
 import Explorer (Explorer(..))
+import Text.Parsec
+import Text.ParserCombinators.Parsec (Parser)
+import qualified Text.Parsec.Token as Token
+import Text.Parsec.Language (emptyDef)
+import Data.Functor.Identity (Identity)
+import Text.ParserCombinators.Parsec.Token (GenTokenParser(commaSep))
 
 data TS a b c = TS {
     tsStates :: Set a,
@@ -37,6 +43,61 @@ instance Ord a => Explorer (TS a b c) where
     initStates t = tsInitial t
     successors t s = Set.map (\(_,_,r) -> r) $ Set.filter (\(l,_,_) -> l==s) (tsTransitions t)
 
+languageDef :: Token.GenLanguageDef String u Identity
+languageDef =
+    emptyDef
+        { Token.identStart      = letter
+        , Token.identLetter     = alphaNum <|> char '_'
+        , Token.reservedOpNames = []
+        , Token.reservedNames   = ["true","false","X","U","W","F","G","R","M"]
+        , Token.caseSensitive   = True
+        }
+
+lexer :: Token.GenTokenParser String u Identity
+lexer = Token.makeTokenParser languageDef
+
+reservedOp :: String -> Parser ()
+reservedOp = Token.reservedOp lexer
+
+whitespace :: Parser ()
+whitespace = Token.whiteSpace lexer
+
+ignoreWhitespace :: Parser a -> Parser a
+ignoreWhitespace p = spaces *> p <* spaces
+
+identifier :: Parser String
+identifier = Token.identifier lexer
+
+parens :: Parser a -> Parser a
+parens = Token.parens lexer
+
+reserved :: String -> Parser ()
+reserved = Token.reserved lexer
+
+integer :: Parser Integer
+integer = ignoreWhitespace $ Token.integer lexer
+
+comma :: Parser String
+comma = Token.comma lexer
+
+tsParser :: Parser (TS Integer Integer Integer)
+tsParser = (\(a,b) c d -> TS a c d b) <$> statesParser <*> initialParser <*> transitionParser <* eof
+
+statesParser :: Parser (Set Integer, Integer -> Set Integer)
+statesParser = string "states:" *> (process <$> many ((,) <$> integer <*> bPar))
+    where
+        bPar = ignoreWhitespace $ parens (commaSep lexer integer)
+        -- insane way of defining this
+        process xs = foldMap (\(l,r) -> (Set.singleton l, (\x -> if x==l then Set.fromList r else Set.empty))) xs
+
+initialParser :: Parser (Set Integer)
+initialParser = string "initial:" *> (Set.fromList <$> many integer)
+
+transitionParser :: Parser (Set (Integer, Integer, Integer))
+transitionParser = string "transitions:" *> (Set.fromList <$> many transition)
+    where
+        transition = ignoreWhitespace $ parens ((,,) <$> integer <*> (comma *> integer) <*> (comma *> integer))
+
 completeTS :: Ord a => Set a -> Set a -> (a -> Set c) -> TS a () c
 completeTS a b c = TS a b transitions c 
     where
@@ -44,3 +105,5 @@ completeTS a b c = TS a b transitions c
 
 discreteTS :: Ord a => Set a -> Set a -> (a -> Set c) -> TS a () c
 discreteTS a b c = TS a b Set.empty c
+
+

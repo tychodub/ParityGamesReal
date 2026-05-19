@@ -1,5 +1,5 @@
 module LTLGNBA where
-import LTL (LTL (..), normalize, getAtomics, closure, consistentSubsetsLTL, elemLTL)
+import LTL (LTL (..), normalize, getAtomics, closure, consistentSubsetsLTL, elemLTL, simplifyLtl)
 import GNBA
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -8,7 +8,7 @@ fromLTL :: Ord prop => LTL prop -> GNBA (Set (LTL prop)) (Set prop)
 fromLTL ltl = GNBA states initialStates transitions finalStates
     where
         atoms = Set.map LTTerm $ getAtomics ltl
-        normalizedLTL = normalize ltl
+        normalizedLTL = normalize (simplifyLtl ltl)
         closureOfLTL = closure normalizedLTL
         states = consistentSubsetsLTL closureOfLTL
         initialStates = Set.filter (\x -> normalizedLTL `Set.member` x) states

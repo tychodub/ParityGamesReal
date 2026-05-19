@@ -7,6 +7,7 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (isNothing)
+import Debug.Trace (trace)
 
 class Explorer (f :: Type) where
     type State f :: Type
@@ -86,4 +87,9 @@ tarjanPartition p s = Map.foldrWithKey' (\k a s' -> Map.insertWith Set.union a (
       idxs = tarjan p s
 
 tarjanNontrivial :: (Explorer f, Ord (State f)) => f -> State f -> Map Int (Set (State f))
-tarjanNontrivial p s = Map.filter (\s' -> length s' > 1) (tarjanPartition p s)
+tarjanNontrivial p s = filteredTarjan
+    where
+      filteredTarjan = Map.filter (\s' -> let n = length s' in if n == 1 
+                                             then let s'' = Set.elemAt 0 s' 
+                                             in s'' `Set.member` successors p s''
+                                             else n > 1) (tarjanPartition p s)

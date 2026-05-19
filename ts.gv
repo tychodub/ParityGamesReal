@@ -4,7 +4,7 @@ b"];
     "repeat" [label = "repeat
 b"];
     "sleep" [label = "sleep
-b"];
+a"];
     "eat" -> "eat" [label = "()"];
     "eat" -> "repeat" [label = "()"];
     "eat" -> "sleep" [label = "()"];

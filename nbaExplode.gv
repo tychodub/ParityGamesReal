@@ -1,0 +1,11 @@
+digraph nba {
+    "(fromList [(!-5 | ((false & true) | (true & false))),(((false & true) | (true & false)) R (!-5 | ((false & true) | (true & false)))),true],0)"[shape = doublecircle][color = "green"];
+    "(fromList [(!-5 | ((false & true) | (true & false))),true],0)"[shape = doublecircle];
+    "(fromList [true,-5],0)"[shape = doublecircle];
+    "(fromList [(!-5 | ((false & true) | (true & false))),(((false & true) | (true & false)) R (!-5 | ((false & true) | (true & false)))),true],0)" -> "(fromList [(!-5 | ((false & true) | (true & false))),(((false & true) | (true & false)) R (!-5 | ((false & true) | (true & false)))),true],0)" [label = "fromList []"];
+    "(fromList [(!-5 | ((false & true) | (true & false))),true],0)" -> "(fromList [(!-5 | ((false & true) | (true & false))),true],0)" [label = "fromList []"];
+    "(fromList [(!-5 | ((false & true) | (true & false))),true],0)" -> "(fromList [true,-5],0)" [label = "fromList []"];
+    "(fromList [true,-5],0)" -> "(fromList [(!-5 | ((false & true) | (true & false))),(((false & true) | (true & false)) R (!-5 | ((false & true) | (true & false)))),true],0)" [label = "fromList [-5]"];
+    "(fromList [true,-5],0)" -> "(fromList [(!-5 | ((false & true) | (true & false))),true],0)" [label = "fromList [-5]"];
+    "(fromList [true,-5],0)" -> "(fromList [true,-5],0)" [label = "fromList [-5]"];
+}

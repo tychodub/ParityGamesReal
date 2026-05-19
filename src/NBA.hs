@@ -8,6 +8,7 @@ import qualified Data.Sequence as Seq
 import Data.Maybe (fromJust, isNothing)
 import Dot (Dot(..), showNoQuotes)
 import TS (TS (..))
+import Debug.Trace (trace)
 
 data NBA a b = NBA { 
     statesNBA :: Set a,
@@ -45,20 +46,20 @@ nbaFromGnba :: (Ord a, Ord b) => GNBA a b -> NBA (a, Int) b
 nbaFromGnba (GNBA a b c d) = NBA nbaStates nbaInit nbaTransitions nbaAccept
     where
         n = length d
-        finalsList = Seq.fromList $ Set.toList d
+        finalsList = if n > 0 then Seq.fromList $ Set.toList d else Seq.singleton a
         nbaInit = Set.map (\x -> (x, 0)) b
-        nbaAccept = if n > 0 then Set.map (\x -> (x,0)) $ fromJust (finalsList Seq.!? 0) else Set.empty
-        nbaStates = foldMap (\x -> Set.fromList ((,) x <$> [0..n-1])) a
+        nbaAccept = Set.map (\x -> (x,0)) $ fromJust (finalsList Seq.!? 0)
+        nbaStates = Set.cartesianProduct a (Set.fromList [0..max (n-1) 0])
         nbaTransitions = foldMap (\(x,m) -> if x `Set.member` fromJust (finalsList Seq.!? m) 
-            then Set.map (\(l,act,r) -> ((l,m),act,(r,m+1 `rem` n))) $ Set.filter (\(l,_,_) -> l == x) c 
+            then Set.map (\(l,act,r) -> ((l,m),act,(r,(m+1) `rem` (max n 1)))) $ Set.filter (\(l,_,_) -> l == x) c 
             else Set.map (\(l,act,r) -> ((l,m),act,(r,m))) $ Set.filter (\(l,_,_) -> l == x) c ) nbaStates
 
-tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> NBA s (Set c) -> NBA (a,s) b 
-tsMul x y = NBA states newInitial transitions finalStates
+tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> NBA s (Set c) -> Set c -> NBA (a,s) b 
+tsMul x y atomics = NBA states newInitial transitions finalStates
     where
         states = Set.cartesianProduct (tsStates x) (statesNBA y)
-        finalStates = foldMap (\f -> Set.map (\z -> (z,f)) (tsStates x)) (acceptingNBA y) 
-        rightCond s = Set.filter (\(_,z,_) -> z == tsLabels x s) (transitionsNBA y) 
+        finalStates = Set.cartesianProduct (tsStates x) (acceptingNBA y) 
+        rightCond s = Set.filter (\(_,z,_) -> z == Set.intersection atomics (tsLabels x s)) (transitionsNBA y) 
         combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
         transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (tsTransitions x)
         initialUnfiltered = Set.cartesianProduct (tsInitial x) (statesNBA y)
@@ -72,10 +73,15 @@ data Colour = Cyan | Blue | Red | White deriving (Show, Eq, Ord)
 updateColour :: Eq t => (t -> p) -> t -> p -> t -> p
 updateColour f s c = (\x -> if x == s then c else f x)
 
-dfsLasso :: Ord a => NBA a b -> Bool 
-dfsLasso p = any (\s -> isNothing $ dfsBlue p s (\_ -> White)) (initialNBA p)
+dfsAcceptingLasso :: (Ord a) => NBA a b -> Bool
+dfsAcceptingLasso p = any (dfsLasso p) foundAccepting
+    where
+        foundAccepting = Set.filter (`Set.member` (acceptingNBA p)) (explore p)
 
-dfsBlue :: Ord a => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
+dfsLasso :: (Ord a) => NBA a b -> a -> Bool 
+dfsLasso p s = isNothing $ dfsBlue p s (\_ -> White)
+
+dfsBlue :: (Ord a) => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
 dfsBlue p s f = if s `Set.member` (acceptingNBA p) 
                    then fmap (\h -> updateColour h s Red) (foldSuccs >>= (dfsRed p s))
                    else fmap (\h -> updateColour h s Blue) foldSuccs
@@ -84,10 +90,10 @@ dfsBlue p s f = if s `Set.member` (acceptingNBA p)
       foldSuccs = Set.foldl' (\g s' -> case g of (Just g') -> if g' s' == White then dfsBlue p s' g' else pure g'
                                                  Nothing -> Nothing) (Just f') (successors p s)
 
-dfsRed :: Ord a => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
+dfsRed :: (Ord a) => NBA a b -> a -> (a -> Colour) -> Maybe (a -> Colour)
 dfsRed p s f' = dfsRedHelper (Set.toList $ successors p s) f'
     where
         dfsRedHelper [] f = pure f 
         dfsRedHelper (t:ts) f | f t == Cyan = Nothing
-                              | f t == Blue = dfsRedHelper ts (updateColour f t Red)
+                              | f t == Blue = dfsRed p t (updateColour f t Red) >>= dfsRedHelper ts 
                               | otherwise   = dfsRedHelper ts f
