@@ -12,12 +12,16 @@ import Data.Either (fromRight)
 import Data.Foldable (Foldable(toList))
 import LTLGNBA (fromLTL)
 import GNBA (gnbaBimap, GNBA (transitionsGNBA), initialGNBA, acceptingGNBA)
-import NBA (nbaFromGnba, NBA (transitionsNBA, initialNBA), tsMul, dfsLasso)
+import NBA (nbaFromGnba, NBA (transitionsNBA, initialNBA), tsMul, dfsLasso, trimNBA)
 import Dot (genDot)
 import TS (completeTS, discreteTS, TS (tsInitial), tsParser)
 import qualified Data.Set as Set
 import qualified GNBA
+import qualified Data.Graph as Graph
 import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2)
+import qualified Data.Graph as Graph
+import ParityArena (ParityArena(ArenaPA), subGame, zielonka)
+import ProgressMeasures (spmBasic, llsFromPA, smallRange, gazdaWillemseSPMPartition)
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -25,6 +29,17 @@ prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toLis
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
+  let graph = Graph.buildG (0,30) [(0,18),(1,30),(2,11),(3,7),(4,29),(5,26),(6,26),(7,6),(8,26),(9,24),(10,26),(11,3),(12,15),(13,11),(14,10),(15,0),(16,22),(17,24),(18,17),(19,6),(20,29),(21,29),(22,2),(23,20),(24,19),(25,25),(26,19),(27,4),(28,14),(29,7),(30,24)]
+  let pa = ArenaPA graph id even
+  writeFile "parity1.gv" (genDot pa)
+  --let spm = spmBasic pa (llsFromPA pa)
+  --print spm
+  let zie = zielonka pa
+  print zie
+  --let spm2 = gazdaWillemseSPMPartition pa (llsFromPA pa)
+  --print spm2
+
+  {-
   ltlString <- getLine
   let ltl = case parse ltlParser "" ltlString of
                  Left x -> error (show x)
@@ -59,14 +74,15 @@ main = do
   let ts2TensorNBA = tsMul ts2 ltlnba atomics
   let ts2TensorNBADot = genDot ts2TensorNBA
   writeFile "ts2NBATensor.gv" ts2TensorNBADot
+  writeFile "ts2NBATensorTrimmed.gv" (genDot (trimNBA ts2TensorNBA))
   let tsTensorGNBA = GNBA.tsMul ts ltlgnba atomics
   let tsTensorGNBADot = genDot tsTensorGNBA
   writeFile "tsGNBATensor.gv" tsTensorGNBADot
   let ts2TensorGNBA = GNBA.tsMul ts2 ltlgnba atomics
   let ts2TensorGNBADot = genDot ts2TensorGNBA
   writeFile "ts2GNBATensor.gv" ts2TensorGNBADot
-  
-  
+  -}
+  {-
   ts3txt <- readFile "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\refFiles\\explodingTest"
   let ts3Parsed = parse tsParser "" ts3txt
   let ts3 = fromRight (error (show ts3Parsed)) ts3Parsed
@@ -86,6 +102,7 @@ main = do
   let mulGNBAExplode = (((GNBA.tsMul ts3 gnbaExplode (getAtomics ltlExplode))))
   writeFile "mulExplode.gv" (genDot mulExplode)
   writeFile "mulGNBAExplode.gv" (genDot mulGNBAExplode)
+  -}
   
   -- print (length (explore (LeftForkFirst 11)))
 

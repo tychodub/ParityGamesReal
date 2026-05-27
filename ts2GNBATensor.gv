@@ -1,23 +1,51 @@
 digraph gnba {
     node [colorscheme = spectral11];
-    "(eat,fromList [(true U !a),true,a])";
-    "(eat,fromList [(true U !a),true])" [shape = doublecircle] [label = "(eat,fromList [(true U !a),true])
-0 "];
-    "(eat,fromList [true,a])" [shape = doublecircle] [label = "(eat,fromList [true,a])
-0 "];
-    "(otherwise,fromList [(true U !a),true,a])";
-    "(otherwise,fromList [(true U !a),true])" [shape = doublecircle] [label = "(otherwise,fromList [(true U !a),true])
-0 "];
-    "(otherwise,fromList [true,a])" [shape = doublecircle] [label = "(otherwise,fromList [true,a])
-0 "];
-    "(repeat,fromList [(true U !a),true,a])";
-    "(repeat,fromList [(true U !a),true])" [shape = doublecircle] [label = "(repeat,fromList [(true U !a),true])
-0 "];
-    "(repeat,fromList [true,a])" [shape = doublecircle] [label = "(repeat,fromList [true,a])
-0 "];
-    "(sleep,fromList [(true U !a),true,a])"[color = "green"];
-    "(sleep,fromList [(true U !a),true])" [shape = doublecircle] [label = "(sleep,fromList [(true U !a),true])
-0 "][color = "green"];
-    "(sleep,fromList [true,a])" [shape = doublecircle] [label = "(sleep,fromList [true,a])
-0 "];
+    "(eat,fromList [(!a R (!b R !e)),(!b R !e),a,b])";
+    "(eat,fromList [(!a R (!b R !e)),(!b R !e),a])";
+    "(eat,fromList [(!a R (!b R !e)),(!b R !e),b])";
+    "(eat,fromList [(!a R (!b R !e)),(!b R !e)])";
+    "(eat,fromList [(!b R !e),a,b])";
+    "(eat,fromList [(!b R !e),a])";
+    "(eat,fromList [a,b,e])";
+    "(eat,fromList [a,b])";
+    "(eat,fromList [a,e])";
+    "(eat,fromList [b,e])";
+    "(eat,fromList [b])";
+    "(eat,fromList [e])";
+    "(otherwise,fromList [(!a R (!b R !e)),(!b R !e),a,b])"[color = "green"];
+    "(otherwise,fromList [(!a R (!b R !e)),(!b R !e),a])"[color = "green"];
+    "(otherwise,fromList [(!a R (!b R !e)),(!b R !e),b])"[color = "green"];
+    "(otherwise,fromList [(!a R (!b R !e)),(!b R !e)])"[color = "green"];
+    "(otherwise,fromList [(!b R !e),a,b])"[color = "green"];
+    "(otherwise,fromList [(!b R !e),a])"[color = "green"];
+    "(otherwise,fromList [a,b,e])";
+    "(otherwise,fromList [a,b])";
+    "(otherwise,fromList [a,e])";
+    "(otherwise,fromList [b,e])";
+    "(otherwise,fromList [b])";
+    "(otherwise,fromList [e])";
+    "(repeat,fromList [(!a R (!b R !e)),(!b R !e),a,b])";
+    "(repeat,fromList [(!a R (!b R !e)),(!b R !e),a])";
+    "(repeat,fromList [(!a R (!b R !e)),(!b R !e),b])";
+    "(repeat,fromList [(!a R (!b R !e)),(!b R !e)])";
+    "(repeat,fromList [(!b R !e),a,b])";
+    "(repeat,fromList [(!b R !e),a])";
+    "(repeat,fromList [a,b,e])";
+    "(repeat,fromList [a,b])";
+    "(repeat,fromList [a,e])";
+    "(repeat,fromList [b,e])";
+    "(repeat,fromList [b])";
+    "(repeat,fromList [e])";
+    "(sleep,fromList [(!a R (!b R !e)),(!b R !e),a,b])"[color = "green"];
+    "(sleep,fromList [(!a R (!b R !e)),(!b R !e),a])"[color = "green"];
+    "(sleep,fromList [(!a R (!b R !e)),(!b R !e),b])"[color = "green"];
+    "(sleep,fromList [(!a R (!b R !e)),(!b R !e)])"[color = "green"];
+    "(sleep,fromList [(!b R !e),a,b])";
+    "(sleep,fromList [(!b R !e),a])";
+    "(sleep,fromList [a,b,e])";
+    "(sleep,fromList [a,b])";
+    "(sleep,fromList [a,e])";
+    "(sleep,fromList [b,e])";
+    "(sleep,fromList [b])";
+    "(sleep,fromList [e])";
 }

@@ -9,6 +9,7 @@ import Data.Functor (($>))
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Dot ( Dot(..), showNoQuotes, quotedString)
+import Data.Either (fromRight)
 
 data LTL prop = LTAnd (LTL prop) (LTL prop) 
               | LTOr (LTL prop) (LTL prop)
@@ -228,6 +229,11 @@ ltlParserInt = parensOr integer (ltlLvl4 integer)
 
 parseLTL :: String -> Either ParseError (LTL String)
 parseLTL s = parse ltlParser "" s
+
+parseLTLInt :: String -> LTL Integer
+parseLTLInt txt = fromRight (error $ show parseResult) parseResult
+    where
+        parseResult = parse ltlParserInt "" txt
 
 simplifyLtl :: LTL prop -> LTL prop
 simplifyLtl (LTG (LTG x)) = simplifyLtl (LTG x)

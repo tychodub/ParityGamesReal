@@ -1,13 +1,16 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Main (main) where
 import Test.QuickCheck
 import LTL (normalize, LTL (..), closure, getAtomics, parseLTL)
 import qualified Data.Set as Set
-import Data.Char (isAlpha)
-import Dot (showNoQuotes)
+import Dot (showNoQuotes, genDot)
 import TS
-import Data.Maybe (fromJust)
-import Pipeline (nbaLTLCheck, nbaLTLCheck2, gnbaLTLCheck)
+import Pipeline (nbaLTLCheck, nbaLTLCheck2, gnbaLTLCheck, reducedNBALTLCheck, reducedNBALTLCheck2)
+import ParityArena
+import qualified Data.Graph
+import ProgressMeasures (spmBasic, LinearLiftStrat (LLS), llsFromPA, gazdaWillemseSPMPartition)
 
 instance Arbitrary a => Arbitrary (LTL a) where
   arbitrary = sized ltlArb
@@ -43,12 +46,27 @@ sizedArb n = do -- TS <$> states >>= initial <*> transitions <*> stateLabels
 
 instance (Arbitrary a, Arbitrary b, Ord a, Ord b, Ord c, Arbitrary c) => Arbitrary (TS a b c) where
   arbitrary = sized sizedArb
-        
+
+-- this is specifically for parity graphs, not general purpose graphs
+instance Arbitrary Data.Graph.Graph where
+    arbitrary = sized arbSized
+        where
+          arbSized n = Data.Graph.buildG (0, n) <$> edges n
+          edges n = do 
+            xs <- fmap (\x -> replicate x ()) arbitrary 
+            es <- traverse (\x -> fmap (\y -> (x,y)) arbitrarySizedNatural) [0..n]
+            es2 <- traverse (\_ -> (arbitrarySizedNatural >>= (\x -> fmap ((,) x) arbitrarySizedNatural))) xs
+            pure (es <> es2)
+            
+
+instance Arbitrary ParityArena where
+    arbitrary = ArenaPA <$> arbitrary <*> arbitrary      
 
 main :: IO ()
 main = do 
-  --x <- generate (arbitrary :: Gen (TS Int Int Int))
-  --print x
+  graph <- generate arbitrary :: IO ParityArena
+  print graph
+  writeFile "generatedGraph.gv" (genDot graph)
   quickCheck normalizeIdempotent 
   quickCheck closureMonotone
   quickCheck atomicsInClosure
@@ -56,6 +74,9 @@ main = do
   quickCheck showParse
   quickCheckWith (sizeArg 12) consistentNBAChecks
   quickCheckWith (sizeArg 12) consistentNBAGNBACheck
+  quickCheckWith (sizeArg 12) consistentTrimNBACheck
+  quickCheckWith (sizeArg 12) consistentTrimNBACheck2
+  quickCheck linearPMConsistent
   where
     sizeArg n = Args (replay stdArgs) (maxSuccess stdArgs) (maxDiscardRatio stdArgs) n (chatty stdArgs) 2 -- what is this last int?
 
@@ -83,3 +104,12 @@ consistentNBAChecks x y = nbaLTLCheck x y == nbaLTLCheck2 x y
 
 consistentNBAGNBACheck :: TS Int Int Int -> LTL Int -> Bool
 consistentNBAGNBACheck x y = nbaLTLCheck x y == gnbaLTLCheck x y
+
+consistentTrimNBACheck :: TS Int Int Int -> LTL Int -> Bool
+consistentTrimNBACheck x y = nbaLTLCheck x y == reducedNBALTLCheck x y
+
+consistentTrimNBACheck2 :: TS Int Int Int -> LTL Int -> Bool
+consistentTrimNBACheck2 x y = nbaLTLCheck2 x y == reducedNBALTLCheck2 x y
+
+linearPMConsistent :: ParityArena -> Bool
+linearPMConsistent pa = spmBasic pa (llsFromPA pa) == gazdaWillemseSPMPartition pa (llsFromPA pa)

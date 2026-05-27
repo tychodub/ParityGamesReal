@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeFamilies #-}
 module NBA where
-import Data.Set (Set)
+import Data.Set (Set, (\\))
 import Explorer
 import qualified Data.Set as Set
 import GNBA (GNBA (..))
@@ -97,3 +97,19 @@ dfsRed p s f' = dfsRedHelper (Set.toList $ successors p s) f'
         dfsRedHelper (t:ts) f | f t == Cyan = Nothing
                               | f t == Blue = dfsRed p t (updateColour f t Red) >>= dfsRedHelper ts 
                               | otherwise   = dfsRedHelper ts f
+
+reachableNBA :: Ord a => NBA a b -> NBA a b
+reachableNBA nba@(NBA s i t a) = NBA (Set.intersection s statesSpace) i newTrans (Set.intersection a statesSpace)
+    where
+        statesSpace = explore nba
+        newTrans = Set.filter (\(l,_,r) -> l `Set.member` statesSpace || r `Set.member` statesSpace) t
+
+locklessNBA :: Ord a => NBA a b -> NBA a b 
+locklessNBA nba@(NBA s i t a) = if null firstLocks then nba else locklessNBA newNBA
+    where
+        firstLocks = deadlocks nba
+        newTrans = Set.filter (\(l,_,r) -> not ((l `Set.member` firstLocks) || r `Set.member` firstLocks)) t
+        newNBA = NBA (s \\ firstLocks) (i \\ firstLocks) newTrans (a \\ firstLocks) 
+
+trimNBA :: Ord a => NBA a b -> NBA a b 
+trimNBA = locklessNBA . reachableNBA

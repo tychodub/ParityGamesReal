@@ -11,6 +11,7 @@ import qualified Text.Parsec.Token as Token
 import Text.Parsec.Language (emptyDef)
 import Data.Functor.Identity (Identity)
 import Text.ParserCombinators.Parsec.Token (GenTokenParser(commaSep))
+import Data.Either (fromRight)
 
 data TS a b c = TS {
     tsStates :: Set a,
@@ -82,6 +83,11 @@ comma = Token.comma lexer
 
 tsParser :: Parser (TS Integer Integer Integer)
 tsParser = (\(a,b) c d -> TS a c d b) <$> statesParser <*> initialParser <*> transitionParser <* eof
+
+parseTS :: String -> TS Integer Integer Integer
+parseTS txt = fromRight (error $ show parseResult) parseResult
+    where
+        parseResult = parse tsParser "" txt
 
 statesParser :: Parser (Set Integer, Integer -> Set Integer)
 statesParser = string "states:" *> (process <$> many ((,) <$> integer <*> bPar))
