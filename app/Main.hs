@@ -20,8 +20,9 @@ import qualified GNBA
 import qualified Data.Graph as Graph
 import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2)
 import qualified Data.Graph as Graph
-import ParityArena (ParityArena(ArenaPA), subGame, zielonka)
+import ParityArena (ParityArena(ArenaPA), subGame, zielonka, zielonkaStrat)
 import ProgressMeasures (spmBasic, llsFromPA, smallRange, gazdaWillemseSPMPartition)
+import qualified GHC.Arr as Arr
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -36,6 +37,11 @@ main = do
   --print spm
   let zie = zielonka pa
   print zie
+  print (zielonkaStrat pa)
+  let graph2 = Arr.array (0,30) [(0,[9]),(1,[6]),(2,[27]),(3,[16,4]),(4,[27]),(5,[23]),(6,[30,24]),(7,[15]),(8,[15]),(9,[27]),(10,[16,6]),(11,[27]),(12,[5]),(13,[21]),(14,[26]),(15,[18,20]),(16,[26]),(17,[13,13,30]),(18,[14]),(19,[3]),(20,[26,14]),(21,[17]),(22,[9]),(23,[19]),(24,[0]),(25,[28,18]),(26,[8,1]),(27,[1]),(28,[9]),(29,[12,9]),(30,[10])]
+  let pa2 = ArenaPA graph2 id even
+  writeFile "parity2.gv" (genDot pa2)
+  print (zielonka pa2)
   --let spm2 = gazdaWillemseSPMPartition pa (llsFromPA pa)
   --print spm2
 

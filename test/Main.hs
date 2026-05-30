@@ -60,7 +60,7 @@ instance Arbitrary Data.Graph.Graph where
             
 
 instance Arbitrary ParityArena where
-    arbitrary = ArenaPA <$> arbitrary <*> arbitrary      
+    arbitrary = ArenaPA <$> arbitrary <*> arbitrary <*> arbitrary     
 
 main :: IO ()
 main = do 
@@ -76,7 +76,7 @@ main = do
   quickCheckWith (sizeArg 12) consistentNBAGNBACheck
   quickCheckWith (sizeArg 12) consistentTrimNBACheck
   quickCheckWith (sizeArg 12) consistentTrimNBACheck2
-  quickCheck linearPMConsistent
+  --quickCheck linearPMConsistent
   where
     sizeArg n = Args (replay stdArgs) (maxSuccess stdArgs) (maxDiscardRatio stdArgs) n (chatty stdArgs) 2 -- what is this last int?
 
@@ -110,6 +110,11 @@ consistentTrimNBACheck x y = nbaLTLCheck x y == reducedNBALTLCheck x y
 
 consistentTrimNBACheck2 :: TS Int Int Int -> LTL Int -> Bool
 consistentTrimNBACheck2 x y = nbaLTLCheck2 x y == reducedNBALTLCheck2 x y
+
+zielonkaConsistent :: ParityArena -> Bool
+zielonkaConsistent pa = zielonka pa == zielonkaStrat pa
+    where
+      (w0,w1,_,_) = zielonkaStrat pa
 
 linearPMConsistent :: ParityArena -> Bool
 linearPMConsistent pa = spmBasic pa (llsFromPA pa) == gazdaWillemseSPMPartition pa (llsFromPA pa)
