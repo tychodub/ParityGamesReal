@@ -112,7 +112,7 @@ consistentTrimNBACheck2 :: TS Int Int Int -> LTL Int -> Bool
 consistentTrimNBACheck2 x y = nbaLTLCheck2 x y == reducedNBALTLCheck2 x y
 
 zielonkaConsistent :: ParityArena -> Bool
-zielonkaConsistent pa = zielonka pa == zielonkaStrat pa
+zielonkaConsistent pa = zielonka pa == (w0,w1)
     where
       (w0,w1,_,_) = zielonkaStrat pa
 
