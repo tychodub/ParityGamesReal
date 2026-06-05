@@ -8,9 +8,12 @@ import qualified Data.Set as Set
 import Dot (showNoQuotes, genDot)
 import TS
 import Pipeline (nbaLTLCheck, nbaLTLCheck2, gnbaLTLCheck, reducedNBALTLCheck, reducedNBALTLCheck2)
-import ParityArena
+import ParityGames.ParityArena
+import ParityGames.Zielonka
 import qualified Data.Graph
-import ProgressMeasures (spmBasic, LinearLiftStrat (LLS), llsFromPA, gazdaWillemseSPMPartition)
+import ParityGames.ProgressMeasures (spmBasic, LinearLiftStrat (LLS), llsFromPA, gazdaWillemseSPMPartition)
+import Data.Graph (vertices)
+import ParityGames.FixedPointSolver (fpi)
 
 instance Arbitrary a => Arbitrary (LTL a) where
   arbitrary = sized ltlArb
@@ -60,14 +63,18 @@ instance Arbitrary Data.Graph.Graph where
             
 
 instance Arbitrary ParityArena where
-    arbitrary = ArenaPA <$> arbitrary <*> arbitrary <*> arbitrary     
+    arbitrary = ArenaPA <$> arbitrary <*> (pure id) <*> (pure even) <*> (pure id)     
+
+instance Arbitrary Player where
+    arbitrary = oneof [pure Even, pure Odd]
 
 main :: IO ()
 main = do 
   graph <- generate arbitrary :: IO ParityArena
   print graph
   writeFile "generatedGraph.gv" (genDot graph)
-  quickCheck normalizeIdempotent 
+  quickCheck normalizeIdempotent
+  quickCheck tangleAndZielonka
   quickCheck closureMonotone
   quickCheck atomicsInClosure
   quickCheck closureBounded
@@ -76,6 +83,8 @@ main = do
   quickCheckWith (sizeArg 12) consistentNBAGNBACheck
   quickCheckWith (sizeArg 12) consistentTrimNBACheck
   quickCheckWith (sizeArg 12) consistentTrimNBACheck2
+  quickCheck zielonkaConsistent
+  quickCheck fpiZielonka 
   --quickCheck linearPMConsistent
   where
     sizeArg n = Args (replay stdArgs) (maxSuccess stdArgs) (maxDiscardRatio stdArgs) n (chatty stdArgs) 2 -- what is this last int?
@@ -115,6 +124,14 @@ zielonkaConsistent :: ParityArena -> Bool
 zielonkaConsistent pa = zielonka pa == (w0,w1)
     where
       (w0,w1,_,_) = zielonkaStrat pa
+
+tangleAndZielonka :: ParityArena -> Bool
+tangleAndZielonka pa = zielonka pa == (w0,w1)
+    where
+      (w0,w1,_,_) = tangleLearning pa
+
+fpiZielonka :: ParityArena -> Bool
+fpiZielonka pa = zielonka pa == fpi pa
 
 linearPMConsistent :: ParityArena -> Bool
 linearPMConsistent pa = spmBasic pa (llsFromPA pa) == gazdaWillemseSPMPartition pa (llsFromPA pa)

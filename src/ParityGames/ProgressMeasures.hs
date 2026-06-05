@@ -1,5 +1,5 @@
-module ProgressMeasures where
-import ParityArena
+module ParityGames.ProgressMeasures where
+import ParityGames.ParityArena
 import qualified Data.Graph as Graph
 import Data.Graph (vertices, edges)
 import Data.Set (Set, partition)
@@ -20,7 +20,7 @@ prWrap :: [Int] -> Progress
 prWrap = Pr . Just
 
 zeroMeasure :: ParityArena -> ProgressMeasure
-zeroMeasure (ArenaPA graph _ _) _ = Pr $ Just $ replicate (length $ vertices graph) 0
+zeroMeasure (ArenaPA graph _ _ _) _ = Pr $ Just $ replicate (length $ vertices graph) 0
 
 instance Ord Progress where
     _ <= (Pr Nothing) = True
@@ -28,7 +28,7 @@ instance Ord Progress where
     (Pr (Just xs)) <= (Pr (Just ys)) = xs <= ys
 
 smallRange :: ParityArena -> Set Progress
-smallRange (ArenaPA graph pri _) = Set.insert (Pr Nothing) (Set.fromList $ map prWrap (xs k))
+smallRange (ArenaPA graph pri _ _) = Set.insert (Pr Nothing) (Set.fromList $ map prWrap (xs k))
     where
         k = length (Set.fromList (fmap pri (vertices graph)))
         xs 0 = [[0]]
@@ -42,7 +42,7 @@ smallRange (ArenaPA graph pri _) = Set.insert (Pr Nothing) (Set.fromList $ map p
 -- | assumes that the progress measure is small.
 --   This is a horrible algorithm that recomputes the range of the progress measure each time.
 prog :: ParityArena -> Set Progress -> ProgressMeasure -> Graph.Edge -> Player -> Progress
-prog (ArenaPA _ pri _) sR f (l',r) pl = case f r of 
+prog (ArenaPA _ pri _ _) sR f (l',r) pl = case f r of 
                       (Pr Nothing) -> Pr Nothing
                       (Pr (Just r')) -> case2 r'
     where
@@ -81,7 +81,7 @@ spmFixedPoint pa f strat = spmFPHelper f v strat'
 newtype LinearLiftStrat = LLS (Int, Int) deriving (Show, Eq)
 
 llsFromPA :: ParityArena -> LinearLiftStrat
-llsFromPA (ArenaPA graph _ _) = LLS (0,length (vertices graph))
+llsFromPA (ArenaPA graph _ _ _) = LLS (0,length (vertices graph))
 
 instance LiftStrat LinearLiftStrat where
     lifted _ (LLS (_,r)) _ = LLS (0,r)
@@ -92,7 +92,7 @@ instance LiftStrat LinearLiftStrat where
             nextVertex = (r + 1) `rem` lenV
 
 spmBasic :: LiftStrat a => ParityArena -> a -> (Set Int, Set Int)
-spmBasic pa@(ArenaPA graph _ _) strat = partition (\v -> newMeasure v /= Pr Nothing) (Set.fromList (vertices graph))
+spmBasic pa@(ArenaPA graph _ _ _) strat = partition (\v -> newMeasure v /= Pr Nothing) (Set.fromList (vertices graph))
     where
         newMeasure = spmFixedPoint pa (zeroMeasure pa) strat
 
@@ -109,7 +109,7 @@ instance (LiftStrat a) => LiftStrat (SubStrat a) where
 -- | assumes u is a subset of `Set.filter (\x -> x >= k) w`.
 --   the k parameter from the paper is not in the function since it is really an assumption on u.
 guardedAttractors :: ParityArena -> Player -> Set Int -> Set Int -> Set Int
-guardedAttractors pa@(ArenaPA graph pri _) pl w u = plAdmitted u
+guardedAttractors pa@(ArenaPA graph pri _ _) pl w u = plAdmitted u
     where
         plAdmitted u' | u' == newU = u'
                       | otherwise = plAdmitted u'
@@ -124,12 +124,12 @@ guardedAttractors pa@(ArenaPA graph pri _) pl w u = plAdmitted u
 
 -- | based on the modified algorithm in https://arxiv.org/pdf/1509.07207
 gazdaWillemseSPMPartition :: LiftStrat a => ParityArena -> a -> (Set Int, Set Int)
-gazdaWillemseSPMPartition pa@(ArenaPA graph _ _) strat = partition (\v -> spm v /= Pr Nothing) (Set.fromList (vertices graph))
+gazdaWillemseSPMPartition pa@(ArenaPA graph _ _ _) strat = partition (\v -> spm v /= Pr Nothing) (Set.fromList (vertices graph))
     where
         spm = gazdaWillemseSPM pa strat
 
 gazdaWillemseSPM :: LiftStrat a => ParityArena -> a -> ProgressMeasure
-gazdaWillemseSPM pa@(ArenaPA graph _ _) strat = spmWithin pa mt (Set.fromList $ vertices graph) (zeroMeasure pa) strat
+gazdaWillemseSPM pa@(ArenaPA graph _ _ _) strat = spmWithin pa mt (Set.fromList $ vertices graph) (zeroMeasure pa) strat
     where
         mt = smallRange pa
 
@@ -152,7 +152,7 @@ spmWithin pa mt w spm strat | null w = spm
 
 beforeForAll1 :: LiftStrat a => ParityArena -> Set Progress -> Set Int -> ProgressMeasure -> a -> Int 
                  -> (ProgressMeasure, a, Set Int)
-beforeForAll1 pa@(ArenaPA _ pri _) mt w spm strat v = (spmNew3, strat, a)
+beforeForAll1 pa@(ArenaPA _ pri _ _) precomputedRange w spm strat v = (spmNew3, strat, a)
     where
         k = pri v
         -- sigma is for computing winning strategies, not of interest for now
@@ -161,7 +161,7 @@ beforeForAll1 pa@(ArenaPA _ pri _) mt w spm strat v = (spmNew3, strat, a)
         spmNew1 = \x -> if x `Set.member` (Set.delete v res1) then Pr Nothing else spm x
         irr1 = guardedAttractors pa Odd w (Set.filter (\x -> pri x < k) w)
         rem1 = w Set.\\ (res1 <> irr1)
-        spmNew2 = spmWithin pa mt rem1 spmNew1 (SubS (rem1,strat)) 
+        spmNew2 = spmWithin pa precomputedRange rem1 spmNew1 (SubS (rem1,strat)) 
         dom = res1 <> (Set.filter (\x -> spmNew2 x == Pr Nothing) res1)
         a = guardedAttractors pa Even w dom
         outerA = a Set.\\ dom 

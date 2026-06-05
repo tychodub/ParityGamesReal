@@ -73,8 +73,10 @@ library
                       Pipeline,
                       VWAA,
                       TGBA,
-                      ParityArena,
-                      ProgressMeasures
+                      ParityGames.ParityArena,
+                      ParityGames.ProgressMeasures,
+                      ParityGames.Zielonka,
+                      ParityGames.FixedPointSolver
 
     -- Modules included in this library but not exported.
     -- other-modules:

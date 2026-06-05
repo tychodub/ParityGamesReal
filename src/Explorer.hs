@@ -1,18 +1,27 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Explorer (Explorer(..), explore, deadlocks, deadlockPresent, tarjan, tarjanNontrivial) where
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+module Explorer (Explorer(..), explore, deadlocks, deadlockPresent, tarjan, tarjanNontrivial, tarjanPartition) where
 import Data.Set
 import Data.Kind (Type)
 import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (isNothing)
-import Debug.Trace (trace)
+import qualified Data.Graph as Graph
+import Data.Graph (vertices)
+import qualified GHC.Arr as Arr
 
 class Explorer (f :: Type) where
     type State f :: Type
     initStates :: f -> Set (State f)
     successors :: f -> State f -> Set (State f)
+
+instance Explorer Graph.Graph where
+    type State _ = Int
+    initStates = Set.fromList . vertices 
+    successors graph node = Set.fromList (graph Arr.! node)
 
 explore :: (Explorer f, Ord (State f)) => f -> Set (State f)
 explore p = exploreIter p v v

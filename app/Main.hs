@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 module Main where
 
 import PNMLParser
@@ -20,9 +21,11 @@ import qualified GNBA
 import qualified Data.Graph as Graph
 import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2)
 import qualified Data.Graph as Graph
-import ParityArena (ParityArena(ArenaPA), subGame, zielonka, zielonkaStrat)
-import ProgressMeasures (spmBasic, llsFromPA, smallRange, gazdaWillemseSPMPartition)
+import ParityGames.ParityArena (ParityGame(ArenaPA), subGame, pruneLeafs, tangleLearning, flatPA)
+import ParityGames.ProgressMeasures (spmBasic, llsFromPA, smallRange, gazdaWillemseSPMPartition)
+import ParityGames.FixedPointSolver (fpi)
 import qualified GHC.Arr as Arr
+import ParityGames.Zielonka
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -30,18 +33,35 @@ prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toLis
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
-  let graph = Graph.buildG (0,30) [(0,18),(1,30),(2,11),(3,7),(4,29),(5,26),(6,26),(7,6),(8,26),(9,24),(10,26),(11,3),(12,15),(13,11),(14,10),(15,0),(16,22),(17,24),(18,17),(19,6),(20,29),(21,29),(22,2),(23,20),(24,19),(25,25),(26,19),(27,4),(28,14),(29,7),(30,24)]
-  let pa = ArenaPA graph id even
+  let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
+  let pa = ArenaPA graph id even id
+  let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
   writeFile "parity1.gv" (genDot pa)
+  writeFile "parityTrivial.gv" (genDot paTrivial)
   --let spm = spmBasic pa (llsFromPA pa)
   --print spm
-  let zie = zielonka pa
-  print zie
+  --let zie = zielonka pa
+  --print zie
+  --print (zielonkaStrat pa)
+  --print (tangleLearning pa)
+  putStrLn "pa1"
   print (zielonkaStrat pa)
-  let graph2 = Arr.array (0,30) [(0,[9]),(1,[6]),(2,[27]),(3,[16,4]),(4,[27]),(5,[23]),(6,[30,24]),(7,[15]),(8,[15]),(9,[27]),(10,[16,6]),(11,[27]),(12,[5]),(13,[21]),(14,[26]),(15,[18,20]),(16,[26]),(17,[13,13,30]),(18,[14]),(19,[3]),(20,[26,14]),(21,[17]),(22,[9]),(23,[19]),(24,[0]),(25,[28,18]),(26,[8,1]),(27,[1]),(28,[9]),(29,[12,9]),(30,[10])]
-  let pa2 = ArenaPA graph2 id even
+  print (fpi pa)
+  print (tangleLearning pa)
+  putStrLn "paTrivial"
+  print (zielonkaStrat paTrivial)
+  print (fpi paTrivial)
+  print (tangleLearning paTrivial)
+  let graph2 = Arr.array (0,15) [(0,[15,5]),(1,[2,14]),(2,[4,15]),(3,[11,7,7]),(4,[2]),(5,[2,10,14,5]),(6,[4]),(7,[13]),(8,[11,1]),(9,[8]),(10,[15,9]),(11,[1,3]),(12,[3]),(13,[2]),(14,[9]),(15,[13,6])]
+  let pa2 = ArenaPA graph2 id even id
   writeFile "parity2.gv" (genDot pa2)
-  print (zielonka pa2)
+  putStrLn "pa2"
+  print (zielonkaStrat pa2)
+  print (fpi pa2)
+  print (tangleLearning pa2)
+  --writeFile "parity2Pruned.gv" (genDot (pruneLeafs pa2))
+  --print (zielonka pa2)
+  --print (zielonkaStrat pa2)
   --let spm2 = gazdaWillemseSPMPartition pa (llsFromPA pa)
   --print spm2
 
