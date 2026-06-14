@@ -10,10 +10,12 @@ import TS
 import Pipeline (nbaLTLCheck, nbaLTLCheck2, gnbaLTLCheck, reducedNBALTLCheck, reducedNBALTLCheck2)
 import ParityGames.ParityArena
 import ParityGames.Zielonka
+import ParityGames.TangleLearning
 import qualified Data.Graph
-import ParityGames.ProgressMeasures (spmBasic, LinearLiftStrat (LLS), llsFromPA, gazdaWillemseSPMPartition)
+import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides)
 import Data.Graph (vertices)
 import ParityGames.FixedPointSolver (fpi)
+import ParityGames.FixedPointSolver (fpiFreeze, fpj)
 
 instance Arbitrary a => Arbitrary (LTL a) where
   arbitrary = sized ltlArb
@@ -70,11 +72,14 @@ instance Arbitrary Player where
 
 main :: IO ()
 main = do 
-  graph <- generate arbitrary :: IO ParityArena
-  print graph
-  writeFile "generatedGraph.gv" (genDot graph)
+  --graph <- generate arbitrary :: IO ParityArena
+  --print graph
+  --writeFile "generatedGraph.gv" (genDot graph)
+  --quickCheck tangleAndZielonka
+  quickCheckWith (sizeArg 30) spmSlidesZielonka
   quickCheck normalizeIdempotent
-  quickCheck tangleAndZielonka
+  quickCheck fpiFreezeZielonka
+  quickCheck fpjZielonka
   quickCheck closureMonotone
   quickCheck atomicsInClosure
   quickCheck closureBounded
@@ -84,8 +89,7 @@ main = do
   quickCheckWith (sizeArg 12) consistentTrimNBACheck
   quickCheckWith (sizeArg 12) consistentTrimNBACheck2
   quickCheck zielonkaConsistent
-  quickCheck fpiZielonka 
-  --quickCheck linearPMConsistent
+  quickCheckWith (sizeArg 25) fpiZielonka -- very slow
   where
     sizeArg n = Args (replay stdArgs) (maxSuccess stdArgs) (maxDiscardRatio stdArgs) n (chatty stdArgs) 2 -- what is this last int?
 
@@ -133,5 +137,17 @@ tangleAndZielonka pa = zielonka pa == (w0,w1)
 fpiZielonka :: ParityArena -> Bool
 fpiZielonka pa = zielonka pa == fpi pa
 
-linearPMConsistent :: ParityArena -> Bool
-linearPMConsistent pa = spmBasic pa (llsFromPA pa) == gazdaWillemseSPMPartition pa (llsFromPA pa)
+fpiFreezeZielonka :: ParityArena -> Bool
+fpiFreezeZielonka pa = zielonka pa == (w0,w1)
+    where
+      (w0,w1,_,_)  = fpiFreeze pa
+
+fpjZielonka :: ParityArena -> Bool
+fpjZielonka pa = zielonka pa == (w0,w1)
+    where
+      (w0,w1,_,_) = fpj pa
+
+spmSlidesZielonka :: ParityArena -> Bool
+spmSlidesZielonka pa = zielonka pa == (w0,w1)
+    where
+      (w0,w1,_) = spmSlides pa Even

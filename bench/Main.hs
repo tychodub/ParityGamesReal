@@ -4,9 +4,10 @@ import TS
 import LTL (parseLTLInt)
 import Pipeline (nbaLTLCheck, reducedNBALTLCheck)
 import qualified GHC.Arr as Arr
-import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena)
+import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena, Player(..))
 import ParityGames.Zielonka (zielonkaStrat)
-import ParityGames.FixedPointSolver (fpi)
+import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
+import ParityGames.ProgressMeasures (spmSlides)
 
 
 main :: IO ()
@@ -17,15 +18,18 @@ main = do
     let ltl1 = parseLTLInt ltl1Txt
     defaultMain [
         bgroup "bench part 1" [
-        bench "nba pipeline 1" $ whnf (\ltl -> nbaLTLCheck ts1 ltl) ltl1,
-        bench "reduced nba pipeline 1" $ whnf (\ltl -> reducedNBALTLCheck ts1 ltl) ltl1
+        bench "nba pipeline 1" $ nf (\ltl -> nbaLTLCheck ts1 ltl) ltl1,
+        bench "reduced nba pipeline 1" $ nf (\ltl -> reducedNBALTLCheck ts1 ltl) ltl1
         ],
-        bgroup "bench part 2" [
-            bench "zielonka sg1" $ whnf (\pa -> zielonkaStrat pa) smallGraph1,
-            bench "zielonka pruned sg1" $ whnf (\pa -> zielonkaStrat pa) (pruneLeafs smallGraph1),
-            bench "zielonka+pruning sg1" $ whnf (\pa -> zielonkaStrat (pruneLeafs pa)) smallGraph1,
-            bench "fpi sg1" $ whnf (\pa -> fpi pa) smallGraph1
-        ]
+        bgroup "bench part 2" ([
+            bench "zielonka sg1" . nf (\pa -> zielonkaStrat pa),
+            (\x -> bench "zielonka pruned sg1" $ nf (\pa -> zielonkaStrat pa) (let (a,_,_) = pruneLeafs x in a)),
+            bench "zielonka+pruning sg1" . nf (\pa -> zielonkaStrat (let (a,_,_) = pruneLeafs pa in a)),
+            bench "fpi sg1" . nf (\pa -> fpi pa),
+            bench "fpiFreeze" . nf (\pa -> fpiFreeze pa),
+            bench "fpj" . nf (\pa -> fpj pa),
+            bench "spm" . nf (\pa -> spmSlides pa Even)
+        ]<*>[smallGraph1])
         ]
 
 smallGraph1 :: ParityArena

@@ -1,0 +1,26 @@
+digraph ParityArena {
+    "'a'" [label = "'a', 0"];
+    "'b'" [label = "'b', 2"] [shape = pentagon];
+    "'c'" [label = "'c', 7"];
+    "'d'" [label = "'d', 1"] [shape = pentagon];
+    "'e'" [label = "'e', 5"];
+    "'f'" [label = "'f', 8"];
+    "'g'" [label = "'g', 6"];
+    "'h'" [label = "'h', 2"];
+    "'i'" [label = "'i', 3"];
+    "'a'" -> "'b'" [label = ""];
+    "'b'" -> "'a'" [label = ""];
+    "'b'" -> "'f'" [label = ""];
+    "'c'" -> "'b'" [label = ""];
+    "'c'" -> "'g'" [label = ""];
+    "'d'" -> "'c'" [label = ""];
+    "'d'" -> "'e'" [label = ""];
+    "'e'" -> "'d'" [label = ""];
+    "'e'" -> "'i'" [label = ""];
+    "'f'" -> "'g'" [label = ""];
+    "'g'" -> "'h'" [label = ""];
+    "'h'" -> "'d'" [label = ""];
+    "'h'" -> "'i'" [label = ""];
+    "'i'" -> "'e'" [label = ""];
+    "'i'" -> "'h'" [label = ""];
+}

@@ -21,11 +21,14 @@ import qualified GNBA
 import qualified Data.Graph as Graph
 import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2)
 import qualified Data.Graph as Graph
-import ParityGames.ParityArena (ParityGame(ArenaPA), subGame, pruneLeafs, tangleLearning, flatPA)
-import ParityGames.ProgressMeasures (spmBasic, llsFromPA, smallRange, gazdaWillemseSPMPartition)
-import ParityGames.FixedPointSolver (fpi)
+import ParityGames.ParityArena (ParityGame(ArenaPA), subGame, pruneLeafs, flatPA, ParityArena, Player(..))
+import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides)
+import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
 import qualified GHC.Arr as Arr
 import ParityGames.Zielonka
+import ParityGames.TangleLearning
+import Data.Bifunctor (Bifunctor(bimap))
+import Data.Maybe (fromJust)
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -36,29 +39,49 @@ main = do
   let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
   let pa = ArenaPA graph id even id
   let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
-  writeFile "parity1.gv" (genDot pa)
-  writeFile "parityTrivial.gv" (genDot paTrivial)
-  --let spm = spmBasic pa (llsFromPA pa)
-  --print spm
-  --let zie = zielonka pa
-  --print zie
-  --print (zielonkaStrat pa)
-  --print (tangleLearning pa)
+  writeFile "dotfiles/parity1.gv" (genDot pa)
+  writeFile "dotfiles/parityTrivial.gv" (genDot paTrivial)
+  writeFile "dotfiles/pa2loop.gv" (genDot (Arr.array (0 :: Int,33) [(0,[30 :: Int]),(1,[0,14]),(2,[9]),(3,[19]),(4,[30]),(5,[25,9,18]),(6,[11,9]),(7,[5]),(8,[16]),(9,[28]),(10,[28]),(11,[7]),(12,[6]),(13,[0]),(14,[20,12]),(15,[10]),(16,[22]),(17,[32]),(18,[9,15]),(19,[22]),(20,[22]),(21,[4,14]),(22,[9]),(23,[1]),(24,[13]),(25,[19,6]),(26,[18]),(27,[12]),(28,[19,23]),(29,[12,15]),(30,[12]),(31,[32]),(32,[22,11]),(33,[2])]))
   putStrLn "pa1"
   print (zielonkaStrat pa)
-  print (fpi pa)
+  print (fpiFreeze pa)
+  print (fpj pa)
+  print (spmSlides pa Even)
   print (tangleLearning pa)
   putStrLn "paTrivial"
   print (zielonkaStrat paTrivial)
-  print (fpi paTrivial)
+  print (fpiFreeze paTrivial)
+  print (fpj paTrivial)
+  print (spmSlides paTrivial Even)
   print (tangleLearning paTrivial)
-  let graph2 = Arr.array (0,15) [(0,[15,5]),(1,[2,14]),(2,[4,15]),(3,[11,7,7]),(4,[2]),(5,[2,10,14,5]),(6,[4]),(7,[13]),(8,[11,1]),(9,[8]),(10,[15,9]),(11,[1,3]),(12,[3]),(13,[2]),(14,[9]),(15,[13,6])]
+  let graph2 = Arr.array (0,10) [(0,[4]),(1,[0]),(2,[3]),(3,[8]),(4,[5]),(5,[4]),(6,[4]),(7,[5]),(8,[9]),(9,[10]),(10,[3])]
   let pa2 = ArenaPA graph2 id even id
-  writeFile "parity2.gv" (genDot pa2)
+  writeFile "dotfiles/parity2.gv" (genDot pa2)
   putStrLn "pa2"
   print (zielonkaStrat pa2)
-  print (fpi pa2)
+  print (fpiFreeze pa2)
+  print (fpj pa2)
+  print (spmSlides pa2 Even)
   print (tangleLearning pa2)
+  {-
+  putStrLn "pruned pa2"
+  let (pa2Pruned,nfrom,_) = pruneLeafs pa2
+  let nodeFromPA2Pruned = fromJust . nfrom
+  let f = (\(a,b,c,d) -> (Set.map nodeFromPA2Pruned a,Set.map nodeFromPA2Pruned b, 
+                          Set.map (bimap nodeFromPA2Pruned nodeFromPA2Pruned) c,
+                          Set.map (bimap nodeFromPA2Pruned nodeFromPA2Pruned) d))
+  print (f $ zielonkaStrat pa2Pruned)
+  print (f $ fpiFreeze pa2Pruned)
+  print (f $ fpj pa2Pruned)
+  -}
+  putStrLn "common slide example"
+  print (zielonkaStrat commonSlidePG)
+  print (fpiFreeze commonSlidePG)
+  print (fpj commonSlidePG)
+  print (spmSlides commonSlidePG Even)
+  print (tangleLearning commonSlidePG)
+  writeFile "dotfiles/commonslide.gv" (genDot commonSlidePG)
+  --writeFile "dotfiles/prunedPA2.gv" (genDot pa2Pruned)
   --writeFile "parity2Pruned.gv" (genDot (pruneLeafs pa2))
   --print (zielonka pa2)
   --print (zielonkaStrat pa2)
@@ -132,5 +155,21 @@ main = do
   
   -- print (length (explore (LeftForkFirst 11)))
 
+commonSlidePG :: ParityGame Char
+commonSlidePG = ArenaPA (Arr.array (0,8) [(0,[1]),(1,[0,5]),(2,[1,6]),(3,[2,4]),(4,[3,8]),
+                                          (5,[6]),(6,[7]),(7,[3,8]),(8,[4,7])]) prio owns nodeVisual
+    where
+      prio 0 = 0
+      prio 1 = 2
+      prio 2 = 7
+      prio 3 = 1
+      prio 4 = 5
+      prio 5 = 8
+      prio 6 = 6
+      prio 7 = 2
+      prio 8 = 3
+      prio n = error ("common slide PA only has 9 nodes, got value: "++show n) 
+      owns n = not (n == 1 || n == 3)
+      nodeVisual n = ['a'..'i']!!n
 
 

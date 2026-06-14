@@ -1,86 +1,120 @@
 module ParityGames.ProgressMeasures where
 import ParityGames.ParityArena
-import qualified Data.Graph as Graph
-import Data.Graph (vertices, edges)
+import Data.Graph (vertices, transposeG)
 import Data.Set (Set, partition)
 import qualified Data.Set as Set
 import Data.Maybe (fromJust)
-import Data.Foldable (find, Foldable (toList))
+import Data.Foldable (find)
 import Explorer (Explorer(successors))
-import Debug.Trace (trace)
-import Control.Applicative ((<**>))
+import Data.Sequence (Seq)
+import qualified Data.Sequence as Seq
+import qualified Data.IntMap.Strict as Map
+import GHC.Arr ((!))
+import Debug.Trace (traceShowId, traceShow, trace)
 
-newtype Progress = Pr (Maybe [Int]) deriving (Show, Eq)
-type ProgressMeasure = Int -> Progress
+newtype Progress = Pr (Maybe (Seq Int)) deriving (Show, Eq)
+type ProgressMeasure = Int -> Progress -- might be worth turning into IntMap, but benchmark!
 
-prApp :: ([Int] -> [Int]) -> Progress -> Progress
+prApp :: (Seq Int -> Seq Int) -> Progress -> Progress
 prApp f (Pr m) = Pr (fmap f m)
 
-prWrap :: [Int] -> Progress
+prWrap :: Seq Int -> Progress
 prWrap = Pr . Just
 
-zeroMeasure :: ParityArena -> ProgressMeasure
-zeroMeasure (ArenaPA graph _ _ _) _ = Pr $ Just $ replicate (length $ vertices graph) 0
+zeroMeasure :: ParityGame a -> Player -> ProgressMeasure
+zeroMeasure pa pl _ = Pr $ Just $ Seq.replicate (length $ (playerRange pa pl)) 0
 
 instance Ord Progress where
     _ <= (Pr Nothing) = True
     (Pr Nothing) <= _ = False
     (Pr (Just xs)) <= (Pr (Just ys)) = xs <= ys
 
-smallRange :: ParityArena -> Set Progress
-smallRange (ArenaPA graph pri _ _) = Set.insert (Pr Nothing) (Set.fromList $ map prWrap (xs k))
+instance Semigroup Progress where
+    (Pr Nothing) <> _ = Pr Nothing
+    _ <> (Pr Nothing) = Pr Nothing
+    (Pr (Just xs)) <> (Pr (Just ys)) = Pr (Just (xs<>ys))
+
+instance Monoid Progress where
+    mempty = prWrap Seq.empty
+
+playerRange :: ParityGame a -> Player -> Seq (Int, Int)
+playerRange (ArenaPA graph priority _ _) pl = Seq.fromList $ reverse (Map.toList accumSet)
     where
-        k = length (Set.fromList (fmap pri (vertices graph)))
-        xs 0 = [[0]]
-        xs i | even i =  xs (i-1)<**>[\ys -> ys++[0]]
-             | otherwise = (++) <$> xs (i-1)<*>(fmap pure [0..n])
-             where
-                n = length (filter (\x -> pri x == i) (vertices graph))
+        notPri | pl == Even = odd . priority
+               | otherwise  = even . priority
+        accumSet = foldl' (\state v -> if notPri v 
+            then Map.insertWith (+) (priority v) 1 state 
+            else state) Map.empty (vertices graph)
 
-
-
--- | assumes that the progress measure is small.
---   This is a horrible algorithm that recomputes the range of the progress measure each time.
-prog :: ParityArena -> Set Progress -> ProgressMeasure -> Graph.Edge -> Player -> Progress
-prog (ArenaPA _ pri _ _) sR f (l',r) pl = case f r of 
-                      (Pr Nothing) -> Pr Nothing
-                      (Pr (Just r')) -> case2 r'
+overflowIncr :: Seq (Int, Int) -> Progress -> Progress
+overflowIncr _ (Pr Nothing) = Pr Nothing
+overflowIncr range (Pr (Just xs)) | fst result = Pr Nothing
+                                  | otherwise  = prWrap $ snd result
     where
-        l = pri l'
-        case2 r' | playerSwitch pl l = minimum (Set.filter (\m -> prApp (take l) m >= prWrap (take l r')) sR)
-                 | otherwise = minimum (Set.filter (\m -> prApp (take l) m > prWrap (take l r')) sR)
-        playerSwitch Even = even -- check if still correct
-        playerSwitch Odd  = odd  -- ditto
+        incrVal i n = (n+1) `rem` (1+case fmap snd $ Seq.lookup i range of 
+            Nothing -> error ("overflowIncr index error, xs: "++show xs++", i: "++show i++", range: "++show range)
+            Just x -> x)
+        indexCalc i n (overflowed,xs') = if overflowed 
+            then (if (incrVal i n) == 0 then True else False,Seq.update i (incrVal i n) xs') 
+            else (False,xs')
+        result = Seq.foldrWithIndex indexCalc (True,xs) xs
 
-lift :: ParityArena -> Set Progress -> ProgressMeasure -> Int -> Player -> ProgressMeasure
-lift pa mt f v pl u | u /= v = f u
-                    | flippedPLSwitch pl (prioPA pa v) = max (f v) (minimum [prog pa mt f e pl | e <- edges (forgetPA pa)])
-                    | otherwise = max (f v) (maximum [prog pa mt f e pl | e <- edges (forgetPA pa)])
+prog :: Seq (Int,Int) -> Progress -> Int -> Player -> Progress
+prog _ (Pr Nothing) _ _ = Pr Nothing
+prog range (Pr (Just m)) p player | pPlayer == player = Pr (Just case1Result)
+                                  | otherwise = case2Result
     where
-        flippedPLSwitch Even = odd -- check if still correct
-        flippedPLSwitch Odd  = even -- ditto
+        pPlayer = toEnum (p `rem` 2)
+        (prefix,toReset) = Seq.splitAt splitIndex m
+        case1Result = prefix <> Seq.replicate (length toReset) 0
+        case2Result = (overflowIncr range (prWrap prefix))<>prWrap (Seq.replicate (length toReset) 0)
+        splitIndex = case Seq.findIndexL (\(l,_) -> l < p) range of
+                          Just x  -> x 
+                          Nothing -> length m
+
+lift :: ParityGame a -> Seq (Int, Int) -> ProgressMeasure -> Int -> Player -> Progress
+lift pa range f v pl | plOwns v = minimum candidates
+                     | otherwise = maximum candidates
+    where
+        vSuccs = successors pa v
+        plOwns | pl == Even = ownsPA pa
+               | otherwise = not . ownsPA pa
+        priority = priorityPA pa
+        candidates = Set.map (\w -> prog range (f w) (priority v) pl) vSuccs
 
 class LiftStrat a where
-    lifted :: ParityArena -> a -> Int -> a
-    nextV :: ParityArena -> a -> (Maybe Int,a)
+    lifted :: ParityGame b -> a -> Int -> a
+    nextV :: ParityGame b -> a -> (Maybe Int,a)
 
-spmFixedPoint :: LiftStrat a => ParityArena -> ProgressMeasure -> a -> ProgressMeasure
-spmFixedPoint pa f strat = spmFPHelper f v strat'
+spmSlides ::  ParityGame a -> Player -> (Set Int, Set Int, Set (Int, Int))
+spmSlides pa pl = (w0,w1,strat)
     where
-        mt = smallRange pa
-        (v, strat') = nextV pa strat 
-        spmFPHelper spm Nothing _ = spm 
-        spmFPHelper spm (Just v') strat'' = spmFPHelper spm' v'' newStrat''
+        vertexSet = Set.fromList (verticesPA pa)
+        range = playerRange pa pl
+        invertedGraph = Data.Graph.transposeG (forgetPA pa)
+        predecessors n = invertedGraph ! n
+        initMeasure = zeroMeasure pa pl
+        initQueue = filter (\v -> toEnum (priorityPA pa v `rem` 2) /= pl) (verticesPA pa)
+        loopHelper [] spm = spm
+        loopHelper (x:xs) spm = if (spm x) < (lift pa range spm x pl)
+            -- predecessors may add something that's already in the queue, which is technically not optimal
+            then loopHelper (predecessors x++xs) newSPM 
+            else loopHelper xs spm
             where
-                newSPM = lift pa mt spm v' Odd
-                (spm',newStrat) = if spm v' > newSPM v'
-                                     then (newSPM,lifted pa strat'' v')
-                                     else (spm,strat'')
-                (v'', newStrat'') = (nextV pa newStrat)
+                newSPM v | v == x = lift pa range spm x pl
+                         | otherwise = spm v
+        resultSPM = loopHelper initQueue initMeasure
+        (w0,w1) | pl == Even = Set.partition (\v -> resultSPM v /= Pr Nothing) vertexSet
+                | otherwise  = Set.partition (\v -> resultSPM v == Pr Nothing) vertexSet
+        plOwns | pl == Even = ownsPA pa
+               | otherwise = not . ownsPA pa
+        pickSucc v = Set.findMax (Set.filter (\u -> resultSPM v == prog range (resultSPM u) (prioPA pa v) pl) (successors pa v))
+        strat | pl == Even = Set.map (\v -> (v,pickSucc v)) (Set.intersection w0 (Set.filter plOwns vertexSet))
+              | otherwise  = Set.map (\v -> (v,pickSucc v)) (Set.intersection w1 (Set.filter plOwns vertexSet))
 
 newtype LinearLiftStrat = LLS (Int, Int) deriving (Show, Eq)
 
-llsFromPA :: ParityArena -> LinearLiftStrat
+llsFromPA :: ParityGame a -> LinearLiftStrat
 llsFromPA (ArenaPA graph _ _ _) = LLS (0,length (vertices graph))
 
 instance LiftStrat LinearLiftStrat where
@@ -90,11 +124,6 @@ instance LiftStrat LinearLiftStrat where
         where
             lenV = (length . vertices . forgetPA) pa
             nextVertex = (r + 1) `rem` lenV
-
-spmBasic :: LiftStrat a => ParityArena -> a -> (Set Int, Set Int)
-spmBasic pa@(ArenaPA graph _ _ _) strat = partition (\v -> newMeasure v /= Pr Nothing) (Set.fromList (vertices graph))
-    where
-        newMeasure = spmFixedPoint pa (zeroMeasure pa) strat
 
 newtype SubStrat a = SubS (Set Int, a) deriving (Show, Eq)
 
@@ -129,11 +158,11 @@ gazdaWillemseSPMPartition pa@(ArenaPA graph _ _ _) strat = partition (\v -> spm 
         spm = gazdaWillemseSPM pa strat
 
 gazdaWillemseSPM :: LiftStrat a => ParityArena -> a -> ProgressMeasure
-gazdaWillemseSPM pa@(ArenaPA graph _ _ _) strat = spmWithin pa mt (Set.fromList $ vertices graph) (zeroMeasure pa) strat
+gazdaWillemseSPM pa@(ArenaPA graph _ _ _) strat = spmWithin pa mt (Set.fromList $ vertices graph) (zeroMeasure pa Even) strat
     where
-        mt = smallRange pa
+        mt = playerRange pa Even
 
-spmWithin :: LiftStrat a => ParityArena -> Set Progress -> Set Int -> ProgressMeasure -> a -> ProgressMeasure
+spmWithin :: LiftStrat a => ParityArena -> Seq (Int, Int) -> Set Int -> ProgressMeasure -> a -> ProgressMeasure
 spmWithin pa mt w spm strat | null w = spm
                          | otherwise = let ((spm',strat',a),b) = (innerLoop spm initStrat initV) 
                          in if b then spm' else spmWithin pa mt (w Set.\\ a) spm' strat'
@@ -143,14 +172,14 @@ spmWithin pa mt w spm strat | null w = spm
         innerLoop spm' strat' (Just _) | all (\x -> spm' x /= Pr Nothing) w = innerLoop newSPM newStrat' newV
                                        | otherwise = breakCond spm' strat'
             where
-                newSPM = (\x -> if spm' x < lift pa mt spm' x Even x then lift pa mt spm' x Even x else spm' x)
+                newSPM = (\x -> if spm' x < lift pa mt spm' x Even then lift pa mt spm' x Even else spm' x)
                 newStrat = Set.foldl' (\s x -> lifted pa s x) strat' w
                 (newV,newStrat') = nextV pa newStrat
         breakCond spm' strat' = case find (\x -> spm' x == Pr Nothing) w of 
                                       Nothing -> ((spm',strat', Set.empty), True) -- the returned set is a dummy
                                       Just v  -> (beforeForAll1 pa mt w spm' strat' v, False)
 
-beforeForAll1 :: LiftStrat a => ParityArena -> Set Progress -> Set Int -> ProgressMeasure -> a -> Int 
+beforeForAll1 :: LiftStrat a => ParityArena -> Seq (Int, Int) -> Set Int -> ProgressMeasure -> a -> Int 
                  -> (ProgressMeasure, a, Set Int)
 beforeForAll1 pa@(ArenaPA _ pri _ _) precomputedRange w spm strat v = (spmNew3, strat, a)
     where

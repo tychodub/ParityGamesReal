@@ -1,5 +1,9 @@
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Dot where
 import Data.Set (Set)
+import Data.Graph (Graph, vertices, edges)
+import qualified Data.Set as Set
 
 class Dot a where
     dotNodes :: a -> Set String
@@ -20,3 +24,8 @@ showNoQuotes y = filter (not . (=='\"')) $ show y
 
 quotedString :: String -> String
 quotedString x = "\""++x++"\""
+
+instance Dot Graph where
+    dotNodes graph = Set.map (show) $ Set.fromList $ vertices graph
+    dotArrows graph = Set.map (\(l,r) -> (show l,"\"\"",show r)) $ Set.fromList (edges graph)
+    dotName _ = "simpleGraph"

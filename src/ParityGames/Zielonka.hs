@@ -35,19 +35,19 @@ zielonkaVanDijk pa@(ArenaPA graph pri _ _) og toCurrent | null (vertices graph) 
         (ng2,og2,tc2) = subGame' pa (Set.fromList vs Set.\\ bAttract)
         (w0',w1') = zielonkaVanDijk ng2 (og . og2) (tc2 . toCurrent)
 
-zielonkaStrat :: ParityArena -> (Set Int, Set Int,  Set (Int, Int), Set (Int, Int))
+zielonkaStrat :: ParityGame a -> (Set Int, Set Int,  Set (Int, Int), Set (Int, Int))
 zielonkaStrat pa = zielonkaVanDijkStrat pa id
 
-zielonkaVanDijkStrat :: ParityArena -> (Int -> Int) -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
+zielonkaVanDijkStrat :: ParityGame a -> (Int -> Int) -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
 zielonkaVanDijkStrat pa@(ArenaPA graph pri _ _) og 
                     | null (vertices graph) = (Set.empty, Set.empty, Set.empty, Set.empty)
                     | bAttract == complW = if even maxPri 
                                                 then (Set.map og (w0 <> uAttract), Set.map og w1,
-                                                      Set.map (bimap og og) (s0 <> sA <> pickedUSet (w0 <> uAttract)),
-                                                      Set.map (bimap og og) sB) 
+                                                      Set.map (bimap og og) (s0 <> sA <> picked0),
+                                                      Set.map (bimap og og) sB <> picked1) 
                                                 else (Set.map og w0,Set.map og (w1 <> uAttract),
-                                                      Set.map (bimap og og) sB, 
-                                                      Set.map (bimap og og) (s1 <> sA <> pickedUSet (w1 <> uAttract)))
+                                                      Set.map (bimap og og) sB <> picked0, 
+                                                      Set.map (bimap og og) (s1 <> sA <> picked1))
                     | otherwise = if even maxPri 
                                                 then (Set.map og w0',Set.map og (w1' <> bAttract), 
                                                       Set.map (bimap og og) s0', 
@@ -71,4 +71,7 @@ zielonkaVanDijkStrat pa@(ArenaPA graph pri _ _) og
         (bAttract,sB) = attractorsStrat pa complW (playerFromIntFlipped maxPri) complS
         (ng2,og2,_) = subGame' pa (Set.fromList vs Set.\\ bAttract)
         (w0',w1',s0',s1') = zielonkaVanDijkStrat ng2 og2
-        pickedUSet w = Set.map (\z -> (z, head $ Set.toList $ (successors pa z `Set.intersection` w))) uSet
+        (picked0,picked1) | even maxPri = Set.partition (\(l,_) -> ownsPA pa l ) 
+                                 (Set.map (\z -> (z, Set.findMax (successors pa z `Set.intersection` (w0 <> uAttract)))) uSet)
+                          | otherwise = Set.partition (\(l,_) -> ownsPA pa l ) 
+                                 (Set.map (\z -> (z, Set.findMax (successors pa z `Set.intersection` (w1 <> uAttract)))) uSet)
