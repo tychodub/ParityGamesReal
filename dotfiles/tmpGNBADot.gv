@@ -1,0 +1,270 @@
+digraph gnba {
+    node [colorscheme = spectral11];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]
+1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]"[color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]
+1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]"[color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]
+0 1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]
+0 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]
+0 1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]
+0 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]
+0 1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]
+0 1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]
+1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a]"[color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),a,b]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),a,b]
+1 "][color = "green"];
+    "fromList [(a U (false R (b R (a U c)))),a]" [shape = doublecircle] [label = "fromList [(a U (false R (b R (a U c)))),a]
+1 "][color = "green"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" [shape = doublecircle] [label = "fromList [(a U c),(b R (a U c)),a,b,c]
+0 1 "];
+    "fromList [(a U c),(b R (a U c)),a,b]" [shape = doublecircle] [label = "fromList [(a U c),(b R (a U c)),a,b]
+0 "];
+    "fromList [(a U c),(b R (a U c)),a,c]" [shape = doublecircle] [label = "fromList [(a U c),(b R (a U c)),a,c]
+0 1 "];
+    "fromList [(a U c),(b R (a U c)),a]" [shape = doublecircle] [label = "fromList [(a U c),(b R (a U c)),a]
+0 "];
+    "fromList [(a U c),(b R (a U c)),b,c]" [shape = doublecircle] [label = "fromList [(a U c),(b R (a U c)),b,c]
+0 1 "];
+    "fromList [(a U c),(b R (a U c)),c]" [shape = doublecircle] [label = "fromList [(a U c),(b R (a U c)),c]
+0 1 "];
+    "fromList [(a U c),a,c]" [shape = doublecircle] [label = "fromList [(a U c),a,c]
+0 1 "];
+    "fromList [(a U c),a]" [shape = doublecircle] [label = "fromList [(a U c),a]
+0 "];
+    "fromList [(a U c),c]" [shape = doublecircle] [label = "fromList [(a U c),c]
+0 1 "];
+    "fromList []" [shape = doublecircle] [label = "fromList []
+0 1 "];
+    "fromList [a,b]" [shape = doublecircle] [label = "fromList [a,b]
+0 1 "];
+    "fromList [a]" [shape = doublecircle] [label = "fromList [a]
+0 1 "];
+    "fromList [b]" [shape = doublecircle] [label = "fromList [b]
+0 1 "];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [b,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [a,c]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),(a U c),a]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),a,b]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),a,b]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [a,b]"];
+    "fromList [(a U (false R (b R (a U c)))),a]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [a]"];
+    "fromList [(a U (false R (b R (a U c)))),a]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),a,c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [(a U c),c]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList []" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [a,b]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [a]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b,c]" -> "fromList [b]" [label = "fromList [a,b,c]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),a,c]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),a]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,b]" -> "fromList [(a U c),c]" [label = "fromList [a,b]"];
+    "fromList [(a U c),(b R (a U c)),a,c]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a,c]"];
+    "fromList [(a U c),(b R (a U c)),a,c]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [a,c]"];
+    "fromList [(a U c),(b R (a U c)),a,c]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [a,c]"];
+    "fromList [(a U c),(b R (a U c)),a,c]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [a,c]"];
+    "fromList [(a U c),(b R (a U c)),a,c]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [a,c]"];
+    "fromList [(a U c),(b R (a U c)),a,c]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [a,c]"];
+    "fromList [(a U c),(b R (a U c)),a]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),a]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),a]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),a]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),a]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),a]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [a]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),a,c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),a]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [(a U c),c]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList []" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [a,b]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [a]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),b,c]" -> "fromList [b]" [label = "fromList [b,c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [c]"];
+    "fromList [(a U c),(b R (a U c)),c]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [c]"];
+    "fromList [(a U c),a,c]" -> "fromList [(a U c),a,c]" [label = "fromList [a,c]"];
+    "fromList [(a U c),a,c]" -> "fromList [(a U c),a]" [label = "fromList [a,c]"];
+    "fromList [(a U c),a,c]" -> "fromList [(a U c),c]" [label = "fromList [a,c]"];
+    "fromList [(a U c),a,c]" -> "fromList []" [label = "fromList [a,c]"];
+    "fromList [(a U c),a,c]" -> "fromList [a,b]" [label = "fromList [a,c]"];
+    "fromList [(a U c),a,c]" -> "fromList [a]" [label = "fromList [a,c]"];
+    "fromList [(a U c),a,c]" -> "fromList [b]" [label = "fromList [a,c]"];
+    "fromList [(a U c),a]" -> "fromList [(a U c),a,c]" [label = "fromList [a]"];
+    "fromList [(a U c),a]" -> "fromList [(a U c),a]" [label = "fromList [a]"];
+    "fromList [(a U c),a]" -> "fromList [(a U c),c]" [label = "fromList [a]"];
+    "fromList [(a U c),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [(a U c),a,c]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [(a U c),a]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [(a U c),c]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList []" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [a,b]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [a]" [label = "fromList [c]"];
+    "fromList [(a U c),c]" -> "fromList [b]" [label = "fromList [c]"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),a,c]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),a]" [label = "fromList []"];
+    "fromList []" -> "fromList [(a U c),c]" [label = "fromList []"];
+    "fromList []" -> "fromList []" [label = "fromList []"];
+    "fromList []" -> "fromList [a,b]" [label = "fromList []"];
+    "fromList []" -> "fromList [a]" [label = "fromList []"];
+    "fromList []" -> "fromList [b]" [label = "fromList []"];
+    "fromList [a,b]" -> "fromList []" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [a,b]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [a]" [label = "fromList [a,b]"];
+    "fromList [a,b]" -> "fromList [b]" [label = "fromList [a,b]"];
+    "fromList [a]" -> "fromList []" [label = "fromList [a]"];
+    "fromList [a]" -> "fromList [a,b]" [label = "fromList [a]"];
+    "fromList [a]" -> "fromList [a]" [label = "fromList [a]"];
+    "fromList [a]" -> "fromList [b]" [label = "fromList [a]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,b]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(b R (a U c)),a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,b]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),b,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),(false R (b R (a U c))),(b R (a U c)),c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),(a U c),a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),a,b]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U (false R (b R (a U c)))),a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),(b R (a U c)),a,b,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),(b R (a U c)),a,b]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),(b R (a U c)),a,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),(b R (a U c)),a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),(b R (a U c)),b,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),(b R (a U c)),c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),a,c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [(a U c),c]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList []" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [a,b]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [a]" [label = "fromList [b]"];
+    "fromList [b]" -> "fromList [b]" [label = "fromList [b]"];
+}

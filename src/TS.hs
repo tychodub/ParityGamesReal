@@ -12,6 +12,8 @@ import Text.Parsec.Language (emptyDef)
 import Data.Functor.Identity (Identity)
 import Text.ParserCombinators.Parsec.Token (GenTokenParser(commaSep))
 import Data.Either (fromRight)
+import PetriNet (Petri, PetriState, MarkingProp, explorePetri, enabled, perform)
+import qualified PetriNet as Petri
 
 data TS a b c = TS {
     tsStates :: Set a,
@@ -112,4 +114,10 @@ completeTS a b c = TS a b transitions c
 discreteTS :: Ord a => Set a -> Set a -> (a -> Set c) -> TS a () c
 discreteTS a b c = TS a b Set.empty c
 
-
+fromPetri :: (MarkingProp prop, Ord a, Ord b) => Petri a b -> TS (Petri a b, PetriState a) b prop
+fromPetri petri = undefined
+    where
+        -- making this many copies is sus, but required if we want to delay computation of prop
+        states = map (\x -> (petri, x)) (explorePetri petri)
+        transits = Set.fromList $ foldMap (\(_,state) -> map (\b -> (state,b,perform petri state b)) 
+                                        $ (filter (enabled petri state) (Petri.transitions petri))) states

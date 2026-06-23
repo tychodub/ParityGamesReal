@@ -4,6 +4,7 @@ import PetriNet (Petri (..))
 import Data.Maybe (fromJust)
 import qualified Data.Map
 import Data.Map (fromListWith)
+import Debug.Trace (trace, traceShowId)
 
 parsePNML :: String -> Petri String String
 parsePNML s = arcsConvert core arcs
@@ -29,14 +30,15 @@ loweruntilInteresting e | elemName == "place" = processPlace e
         elemName = qName (elName e)
 
 processPlace :: Element -> (Petri String String, [(String, String)])
-processPlace e = case marking of
+processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking") e of
                       []   -> (Petri [placeId] mempty (Data.Map.fromList [(placeId,0)]) mempty mempty, mempty)
                       [x]  -> (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal x)]) mempty mempty, mempty)
                       (x:xs) -> error "malformed PNML: did not expect any other child outside of marking"
     where
-        marking = elChildren e
-        markingTxtTag x = head $ elChildren x
-        markingVal x = read $ cdData $ head $ onlyText $ elContent $ markingTxtTag x :: Int
+        markingVal x = case (read . attrVal . head . elAttribs) <$> 
+                            filterElement (\m -> qName (elName m) == "numberconstant") x of
+            Nothing -> 0
+            Just y  -> y :: Int
         placeId = fromJust $ findAttr (unqual "id") e
 
 processTransition :: Element -> (Petri String String, [(String, String)])

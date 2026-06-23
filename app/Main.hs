@@ -29,6 +29,9 @@ import ParityGames.Zielonka
 import ParityGames.TangleLearning
 import Data.Bifunctor (Bifunctor(bimap))
 import Data.Maybe (fromJust)
+import LTLXML
+import HOA (HOA(toHOA))
+import LTL (LTL(..))
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -36,58 +39,24 @@ prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toLis
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
+  ltlxml <- readFile "refFiles/LTLFireability.xml"
+  let ltltmp = parseLTLXMLFireability ltlxml
+  print ltltmp
+  let gnabtmp = fromLTL (LTU (LTTerm "a") (LTG (LTR (LTTerm "b") (LTU (LTTerm "a") (LTTerm "c")))))
+  let nbatmp = nbaFromGnba gnabtmp
+  writeFile "dotFiles/tmpNBAHOA.txt" (toHOA nbatmp "tmpNBA")
+  writeFile "dotFiles/tmpNBADot.gv" (genDot nbatmp)
+  writeFile "dotFiles/tmpGNBAHOA.txt" (toHOA gnabtmp "tmpGNBA")
+  writeFile "dotFiles/tmpGNBADot.gv" (genDot gnabtmp)
+  --pnmlModelxml <- readFile "refFiles/model copy.pnml"
+  --let model = parsePNML pnmlModelxml -- PNML IS SUS
+  --print (model)
   let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
   let pa = ArenaPA graph id even id
   let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
-  writeFile "dotfiles/parity1.gv" (genDot pa)
-  writeFile "dotfiles/parityTrivial.gv" (genDot paTrivial)
-  writeFile "dotfiles/pa2loop.gv" (genDot (Arr.array (0 :: Int,33) [(0,[30 :: Int]),(1,[0,14]),(2,[9]),(3,[19]),(4,[30]),(5,[25,9,18]),(6,[11,9]),(7,[5]),(8,[16]),(9,[28]),(10,[28]),(11,[7]),(12,[6]),(13,[0]),(14,[20,12]),(15,[10]),(16,[22]),(17,[32]),(18,[9,15]),(19,[22]),(20,[22]),(21,[4,14]),(22,[9]),(23,[1]),(24,[13]),(25,[19,6]),(26,[18]),(27,[12]),(28,[19,23]),(29,[12,15]),(30,[12]),(31,[32]),(32,[22,11]),(33,[2])]))
-  putStrLn "pa1"
-  print (zielonkaStrat pa)
-  print (fpiFreeze pa)
-  print (fpj pa)
-  print (spmSlides pa Even)
-  print (tangleLearning pa)
-  putStrLn "paTrivial"
-  print (zielonkaStrat paTrivial)
-  print (fpiFreeze paTrivial)
-  print (fpj paTrivial)
-  print (spmSlides paTrivial Even)
-  print (tangleLearning paTrivial)
   let graph2 = Arr.array (0,10) [(0,[4]),(1,[0]),(2,[3]),(3,[8]),(4,[5]),(5,[4]),(6,[4]),(7,[5]),(8,[9]),(9,[10]),(10,[3])]
   let pa2 = ArenaPA graph2 id even id
-  writeFile "dotfiles/parity2.gv" (genDot pa2)
-  putStrLn "pa2"
-  print (zielonkaStrat pa2)
-  print (fpiFreeze pa2)
-  print (fpj pa2)
-  print (spmSlides pa2 Even)
-  print (tangleLearning pa2)
-  {-
-  putStrLn "pruned pa2"
-  let (pa2Pruned,nfrom,_) = pruneLeafs pa2
-  let nodeFromPA2Pruned = fromJust . nfrom
-  let f = (\(a,b,c,d) -> (Set.map nodeFromPA2Pruned a,Set.map nodeFromPA2Pruned b, 
-                          Set.map (bimap nodeFromPA2Pruned nodeFromPA2Pruned) c,
-                          Set.map (bimap nodeFromPA2Pruned nodeFromPA2Pruned) d))
-  print (f $ zielonkaStrat pa2Pruned)
-  print (f $ fpiFreeze pa2Pruned)
-  print (f $ fpj pa2Pruned)
-  -}
-  putStrLn "common slide example"
-  print (zielonkaStrat commonSlidePG)
-  print (fpiFreeze commonSlidePG)
-  print (fpj commonSlidePG)
-  print (spmSlides commonSlidePG Even)
-  print (tangleLearning commonSlidePG)
-  writeFile "dotfiles/commonslide.gv" (genDot commonSlidePG)
-  --writeFile "dotfiles/prunedPA2.gv" (genDot pa2Pruned)
-  --writeFile "parity2Pruned.gv" (genDot (pruneLeafs pa2))
-  --print (zielonka pa2)
-  --print (zielonkaStrat pa2)
-  --let spm2 = gazdaWillemseSPMPartition pa (llsFromPA pa)
-  --print spm2
-
+  putStrLn "done"
   {-
   ltlString <- getLine
   let ltl = case parse ltlParser "" ltlString of

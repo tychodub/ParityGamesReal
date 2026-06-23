@@ -78,7 +78,9 @@ library
                       ParityGames.Zielonka,
                       ParityGames.FixedPointSolver,
                       ParityGames.ForcedPath,
-                      ParityGames.TangleLearning
+                      ParityGames.TangleLearning,
+                      LTLXML,
+                      HOA
 
     -- Modules included in this library but not exported.
     -- other-modules:

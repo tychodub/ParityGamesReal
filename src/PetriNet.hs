@@ -7,6 +7,7 @@ import qualified Explorer (Explorer (..))
 import qualified Data.Set
 import Dot (Dot(..), showNoQuotes)
 import qualified Data.Set as Set
+import Data.Kind (Type)
 
 data Petri a b = Petri {
     places :: [a], 
@@ -14,7 +15,7 @@ data Petri a b = Petri {
     initial :: Map a Int,
     transInput :: Map b [a],
     transOutput :: Map b [a]
-} deriving (Show, Eq)
+} deriving (Show, Eq, Ord)
 
 instance (Ord a, Ord b) => Semigroup (Petri a b) where
     l <> r = Petri (places l <> places r) 
@@ -96,4 +97,6 @@ exploreIter p (x:xs) v = exploreIter p q' v'
         q' = xs <> t
         v' = v <> t
 
-
+class MarkingProp a where
+    type NodeType a :: Type
+    holdsWithMarking :: a -> PetriState (NodeType a) -> Bool
