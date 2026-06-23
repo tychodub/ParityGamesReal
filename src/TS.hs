@@ -14,37 +14,39 @@ import Text.ParserCombinators.Parsec.Token (GenTokenParser(commaSep))
 import Data.Either (fromRight)
 import PetriNet (Petri, PetriState, MarkingProp, explorePetri, enabled, perform)
 import qualified PetriNet as Petri
+import qualified Data.Foldable as Foldable
 
 data TS a b c = TS {
-    tsStates :: Set a,
+    tsStates :: [a],
     tsInitial :: Set a,
-    tsTransitions :: Set (a,b,a),
+    tsTransitions :: a -> [(b,a)],
     tsLabels :: a -> Set c
 }
 
-instance (Show a, Show b, Show c) => Show (TS a b c) where
+instance (Show a, Show b, Show c, Ord b, Ord a) => Show (TS a b c) where
     show x = "states:\n"++foldMap 
                 (\y -> (show y)++" ("++intercalate ", " (map show $ toList $ tsLabels x y)++")\n") (tsStates x)++
              "\ninitial:\n"++foldMap ((++"\n") . show) (tsInitial x)++
-             "\ntransitions:\n"++foldMap ((++"\n") . show) (tsTransitions x)
+             "\ntransitions:\n"++foldMap ((++"\n") . show) (allTransitionsTS x)
 
-instance (Eq a, Eq b, Eq c, Ord c) => Eq (TS a b c) where
+instance (Eq a, Eq b, Eq c, Ord c, Ord b, Ord a) => Eq (TS a b c) where
     l == r = tsStates l == tsStates r && tsInitial l == tsInitial r
-            && tsTransitions l == tsTransitions r && Set.map (tsLabels l) (tsStates l) == Set.map (tsLabels r) (tsStates r)
+            && allTransitionsTS l == allTransitionsTS r && map (tsLabels l) (tsStates l) == map (tsLabels r) (tsStates r)
 
-instance (Show a, Show b, Show c) => Dot (TS a b c) where
-    dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\" [label = "++"\""++showNoQuotes y++dotLabels y++"\""++"]") (tsStates x)
+instance (Show a, Show b, Show c, Ord b, Ord a) => Dot (TS a b c) where
+    dotNodes x = Set.fromList $ map (\y -> "\""++showNoQuotes y++"\" [label = "++"\""++showNoQuotes y++dotLabels y++"\""++"]") (tsStates x)
         where
             dotLabels y = foldMap (\z -> "\n"++showNoQuotes z) (tsLabels x y)
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
-                                        "\""++showNoQuotes c++"\"")) (tsTransitions x)
+                                        "\""++showNoQuotes c++"\"")) 
+                                    (allTransitionsTS x)
     dotName _ = "TS"
 
 instance Ord a => Explorer (TS a b c) where
     type State (TS a _ _) = a
     initStates t = tsInitial t
-    successors t s = Set.map (\(_,_,r) -> r) $ Set.filter (\(l,_,_) -> l==s) (tsTransitions t)
+    successors t s = Set.fromList $ map (\(_,r) -> r) (tsTransitions t s)
 
 languageDef :: Token.GenLanguageDef String u Identity
 languageDef =
@@ -91,28 +93,32 @@ parseTS txt = fromRight (error $ show parseResult) parseResult
     where
         parseResult = parse tsParser "" txt
 
-statesParser :: Parser (Set Integer, Integer -> Set Integer)
+statesParser :: Parser ([Integer], Integer -> Set Integer)
 statesParser = string "states:" *> (process <$> many ((,) <$> integer <*> bPar))
     where
         bPar = ignoreWhitespace $ parens (commaSep lexer integer)
         -- insane way of defining this
-        process xs = foldMap (\(l,r) -> (Set.singleton l, (\x -> if x==l then Set.fromList r else Set.empty))) xs
+        process xs = foldMap (\(l,r) -> (pure l, (\x -> if x==l then Set.fromList r else Set.empty))) xs
 
 initialParser :: Parser (Set Integer)
 initialParser = string "initial:" *> (Set.fromList <$> many integer)
 
-transitionParser :: Parser (Set (Integer, Integer, Integer))
-transitionParser = string "transitions:" *> (Set.fromList <$> many transition)
+transitionParser :: Parser (Integer -> [(Integer, Integer)])
+transitionParser = string "transitions:" *> ((mconcat . map (\(a,b,c) -> (\x -> if x == a then [(b,c)] else []))) 
+                                            <$> many transition)
     where
         transition = ignoreWhitespace $ parens ((,,) <$> integer <*> (comma *> integer) <*> (comma *> integer))
 
-completeTS :: Ord a => Set a -> Set a -> (a -> Set c) -> TS a () c
-completeTS a b c = TS a b transitions c 
+completeTS :: (Ord a, Foldable t) => t a -> Set a -> (a -> Set c) -> TS a () c
+completeTS a b c = TS (Foldable.toList a) b transitions c 
     where
-        transitions = Set.map (\(l,r) -> (l,(),r)) $ Set.cartesianProduct a a
+        transitions _ = map (\x -> ((),x)) (Foldable.toList a)
 
-discreteTS :: Ord a => Set a -> Set a -> (a -> Set c) -> TS a () c
-discreteTS a b c = TS a b Set.empty c
+discreteTS :: (Ord a, Foldable t) => t a -> Set a -> (a -> Set c) -> TS a () c
+discreteTS a b c = TS (Foldable.toList a) b (const []) c
+
+allTransitionsTS :: (Ord b, Ord a) => TS a b c -> Set (a,b,a)
+allTransitionsTS ts = Set.fromList $ (tsStates ts) >>= (\l -> map (\(m,r) -> (l,m,r)) (tsTransitions ts l)) 
 
 fromPetri :: (MarkingProp prop, Ord a, Ord b) => Petri a b -> TS (Petri a b, PetriState a) b prop
 fromPetri petri = undefined

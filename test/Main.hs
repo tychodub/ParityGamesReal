@@ -37,13 +37,12 @@ sizedArb :: (Ord b, Ord a, Ord c, Arbitrary a, Arbitrary b, Arbitrary c) => Int 
 sizedArb n = do -- TS <$> states >>= initial <*> transitions <*> stateLabels
                sts <- states
                initsts <- initial sts
-               let sts' = Set.fromList sts
-               transts <- transitions sts'
-               TS sts' initsts transts <$> (stateLabels sts)
+               transts <- fmap (foldMap (\(l,m,r) -> (\x -> if x==l then [(m,r)] else []))) (transitions sts)
+               TS sts initsts transts <$> (stateLabels sts)
     where
-      states = vector (max n 20)
+      states = Set.toList <$> Set.fromList <$> vector (max n 20)
       initial s = Set.fromList <$> (sublistOf s)
-      transitions' s = sublistOf (Set.toList (Set.cartesianProduct s s)) 
+      transitions' s = sublistOf ([(x,y) | x <- s, y <- s]) 
       transitions s = Set.fromList <$> ((transitions' s) >>= (\xs -> traverse (\(l,r) -> fmap (\z -> (l,z,r)) arbitrary) xs))
       stateLabels' s =  traverse (\z -> (\y -> (z,y)) <$> arbitrary) s
       stateLabels s = fmap listToFun (stateLabels' s)
