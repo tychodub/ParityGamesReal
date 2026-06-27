@@ -7,6 +7,33 @@ import qualified GNBA
 import Explorer (tarjanNontrivial)
 import qualified Data.Set as Set
 import Data.Map (elems)
+import PetriNet (Petri)
+import LTLXML (Fireable, Cardinality)
+
+mccNBACheck :: Petri String String -> LTL (Either Fireable (Cardinality String)) -> Bool
+mccNBACheck x y = nbaLTLCheck ts y
+    where
+        ts = fromPetri x (getAtomics y) 
+
+mccNBACheck2 :: Petri String String -> LTL (Either Fireable (Cardinality String)) -> Bool
+mccNBACheck2 x y = nbaLTLCheck2 ts y
+    where
+        ts = fromPetri x (getAtomics y) 
+
+mccGNBACheck :: Petri String String -> LTL (Either Fireable (Cardinality String)) -> Bool
+mccGNBACheck x y = gnbaLTLCheck ts y
+    where
+        ts = fromPetri x (getAtomics y) 
+
+mccReducedNBACheck :: Petri String String -> LTL (Either Fireable (Cardinality String)) -> Bool
+mccReducedNBACheck x y = reducedNBALTLCheck ts y
+    where
+        ts = fromPetri x (getAtomics y) 
+
+mccReducedNBACheck2 :: Petri String String -> LTL (Either Fireable (Cardinality String)) -> Bool
+mccReducedNBACheck2 x y = reducedNBALTLCheck2 ts y
+    where
+        ts = fromPetri x (getAtomics y) 
 
 nbaLTLCheck :: (Ord prop, Ord a, Ord b) => TS a b prop -> LTL prop -> Bool
 nbaLTLCheck x y = not $ dfsAcceptingLasso prod
@@ -54,6 +81,5 @@ reducedNBALTLCheck2 x y = not $ any (\parts -> any (\part -> any (\x' -> x' `Set
         gnba = fromLTL negy
         nba' = nbaFromGnba gnba
         nba = trimNBA nba'
-        prod' = tsMul x nba atomics
-        prod = trimNBA prod'
+        prod = tsMul x nba atomics
         tarj = Set.map (tarjanNontrivial prod) (initialNBA prod)

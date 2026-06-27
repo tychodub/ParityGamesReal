@@ -19,7 +19,7 @@ import TS (completeTS, discreteTS, TS (tsInitial), tsParser, fromPetri)
 import qualified Data.Set as Set
 import qualified GNBA
 import qualified Data.Graph as Graph
-import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2)
+import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2, mccNBACheck)
 import qualified Data.Graph as Graph
 import ParityGames.ParityArena (ParityGame(ArenaPA), subGame, pruneLeafs, flatPA, ParityArena, Player(..))
 import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides)
@@ -39,19 +39,21 @@ prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toLis
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
-  ltlxml <- readFile "refFiles/LTLCardinality.xml"
+  ltlxml <- readFile "refFiles/LTLFireability.xml"
   let ltltmp = parseLTLXMLFireability ltlxml
   print ltltmp
-  pnmlModelxml <- readFile "refFiles/model copy.pnml"
+  pnmlModelxml <- readFile "refFiles/model.pnml"
   let model = parsePNML pnmlModelxml -- PNML IS SUS
   print (model)
-  print (fromPetri model (getAtomics (head ltltmp)))
-  writeFile "dotfiles/mccCardModelCopy.gv" (genDot (fromPetri model (getAtomics (head ltltmp))))
+  let tsPetri = (fromPetri model (getAtomics (head ltltmp)))
+  writeFile "dotfiles/mccCardModelCopy.gv" (genDot tsPetri)
+  print (mccNBACheck model (head ltltmp))
   --let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
   --let pa = ArenaPA graph id even id
   --let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
   --let graph2 = Arr.array (0,10) [(0,[4]),(1,[0]),(2,[3]),(3,[8]),(4,[5]),(5,[4]),(6,[4]),(7,[5]),(8,[9]),(9,[10]),(10,[3])]
   --let pa2 = ArenaPA graph2 id even id
+  {-
   ltlString <- getLine
   let ltl = case parse ltlParser "" ltlString of
                  Left x -> error (show x)
@@ -93,6 +95,7 @@ main = do
   let ts2TensorGNBA = GNBA.tsMul ts2 ltlgnba atomics
   let ts2TensorGNBADot = genDot ts2TensorGNBA
   writeFile "dotfiles/ts2GNBATensor.gv" ts2TensorGNBADot
+  -}
   {-
   ts3txt <- readFile "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\refFiles\\explodingTest"
   let ts3Parsed = parse tsParser "" ts3txt
