@@ -7,12 +7,10 @@ import qualified Data.Set as Set
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import Explorer (Explorer(successors))
-import Data.Foldable (find)
 import Data.Bifunctor (bimap)
-import ParityGames.Zielonka (zielonkaVanDijkStrat, zielonkaStrat)
+import ParityGames.Zielonka (zielonkaStrat)
 import qualified Data.IntMap.Strict as Map
 import Data.Maybe (isJust, isNothing)
-import Debug.Trace (traceShowId, traceShow, trace)
 
 findForcedPaths :: ParityGame a -> Player -> Int -> Map.IntMap (Int, Maybe Int)
 findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothing))
@@ -40,45 +38,48 @@ findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothi
 --   This information is used to avoid the initial recursive call in some cases where the \(B = W_{\overline{a}}\) branch
 --   would be taken.
 forcedPathZielonka :: ParityGame a -> (Set Int, Set Int,  Set (Int, Int), Set (Int, Int))
-forcedPathZielonka pa = forcedPathZielonkaHelper pa id
+forcedPathZielonka pa = (\(a,b,c,d) -> 
+                        (Set.fromAscList (IntSet.toAscList a),Set.fromAscList (IntSet.toAscList b),c,d)) 
+                        $ forcedPathZielonkaHelper pa id
 
-findForcedPathsPartition :: ParityGame a -> Player -> Set Int -> (Set Int, Set (Int,Int), Set Int, Set (Int, Int))
+findForcedPathsPartition :: ParityGame a -> Player -> IntSet -> (IntSet, Set (Int,Int), IntSet, Set (Int, Int))
 findForcedPathsPartition pa pl uSet = (l,lStrat,r,rStrat)
     where
         -- l is known winner, r is undecided
-        (l,lStrat,r,rStrat) =  Set.foldr (\n (l',lStrat',r',rStrat') -> 
+        (l,lStrat,r,rStrat) =  IntSet.foldr (\n (l',lStrat',r',rStrat') -> 
             let found = findForcedPaths pa pl n in
             if (case (found Map.!? n) of 
                 Nothing -> error ("did not find "++show n++"in own attractor")
                 Just (_,len) -> isJust len)
-                then (l'<>Set.fromList (Map.keys found),
+                then (l'<>IntSet.fromList (Map.keys found),
                 lStrat'<>Set.fromList (map (\(a,(_,Just b)) -> (a,b)) (filter (isJust . snd . snd) (Map.toList found))),
                 r',rStrat') 
-                else (l',lStrat',r'<>Set.fromList (Map.keys found),
+                else (l',lStrat',r'<>IntSet.fromList (Map.keys found),
                 rStrat'<>Set.fromList (map (\(a,(_,Just b)) -> (a,b)) (filter (isJust . snd . snd) (Map.toList found))))) 
-                (Set.empty, Set.empty, Set.empty, Set.empty) uSet
+                (IntSet.empty, Set.empty, IntSet.empty, Set.empty) uSet
                 
 
-forcedPathZielonkaHelper :: ParityGame a -> (Int -> Int) -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
+forcedPathZielonkaHelper :: ParityGame a -> (Int -> Int) -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
 forcedPathZielonkaHelper pa@(ArenaPA graph pri _ _) og 
-                    | null (vertices graph) = (Set.empty, Set.empty, Set.empty, Set.empty)
-                    | null uAttractUnd = if even maxPri 
+                    | null (vertices graph) = (IntSet.empty, IntSet.empty, Set.empty, Set.empty)
+                    | IntSet.null uAttractUnd = if even maxPri 
                         then 
-                        mapOG ((uAttractGood,Set.empty,sAGood,Set.empty)<>(forcedPathZielonkaHelper middleGraph og'))
+                        mapOG ((uAttractGood,IntSet.empty,sAGood,Set.empty)<>(forcedPathZielonkaHelper middleGraph og'))
                         else
-                        mapOG ((Set.empty,uAttractGood,Set.empty,sAGood)<>(forcedPathZielonkaHelper middleGraph og'))
-                    | otherwise = mapOG $ zielonkaStrat pa
+                        mapOG ((IntSet.empty,uAttractGood,Set.empty,sAGood)<>(forcedPathZielonkaHelper middleGraph og'))
+                    | otherwise = mapOG $ (\(a,b,c,d) -> 
+                        (IntSet.fromAscList (Set.toAscList a),IntSet.fromAscList (Set.toAscList b),c,d)) $ zielonkaStrat pa
     where
         vs = vertices graph
         maxPri = maximum (map pri vs)
-        uSet = Set.fromList $ filter (\x-> pri x==maxPri) vs
+        uSet = IntSet.fromList $ filter (\x-> pri x==maxPri) vs
         playerFromInt n | even n = Even
                         | otherwise = Odd
         (uAttractGood,sAGood, uAttractUnd, _) = findForcedPathsPartition pa (playerFromInt maxPri) uSet
-        (middleGraph,middleOG,_) = subGame pa (Set.fromList vs Set.\\ uAttractGood)
+        (middleGraph,middleOG,_) = subGame pa (IntSet.toList $ IntSet.fromList vs IntSet.\\ uAttractGood)
         og' x = case middleOG x of 
             Just y -> y
             Nothing -> error ("could not find og name of "++show x++", attractLoops: "++show uAttractGood)
-        mapOG (res0,res1,resStrat0,resStrat1) = (Set.map og res0, Set.map og res1, 
+        mapOG (res0,res1,resStrat0,resStrat1) = (IntSet.map og res0, IntSet.map og res1, 
                                                  Set.map (bimap og og) resStrat0, Set.map (bimap og og) resStrat1)
                                         
