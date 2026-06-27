@@ -36,26 +36,6 @@ findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothi
                     ) newPathsValid
                 resultPaths = newPaths <> foundPaths
 
--- currently does not optimize for shortest paths yet, but should be easy to implement if I have the time.
-findForcedPaths' :: ParityGame a -> Player -> Int -> Set (Int,[Int])
-findForcedPaths' pa pl target = forcedPathsHelper (Set.singleton (target,[]))
-    where
-        plOwns | pl == Even = ownsPA pa
-               | otherwise  = not . ownsPA pa
-        transposeGraph = transposeG (forgetPA pa)
-        predecessors n = transposeGraph Arr.! n
-        forcedPathsHelper foundPaths | null newPaths = foundPaths
-                                     | otherwise = forcedPathsHelper resultPaths
-            where
-                newPathCandidates = Set.filter (\x -> not (Set.member x (Set.map fst foundPaths))) 
-                                  $ Set.unions (Set.map (Set.fromList . predecessors . fst) foundPaths)
-                newPathsValid = Set.filter (\x -> if plOwns x 
-                    then any (`Set.member` (Set.map fst foundPaths)) (successors pa x)
-                    else all (`Set.member` (Set.map fst foundPaths)) (successors pa x)) newPathCandidates
-                newPaths = Set.map (\x -> let (Just (a,b)) = find (\(l,_) -> Set.member l (successors pa x)) foundPaths 
-                                          in (x,a:b)) newPathsValid
-                resultPaths = newPaths <> foundPaths
-
 -- | A Zielonka implementation that keeps track of the paths found by the attractor.
 --   This information is used to avoid the initial recursive call in some cases where the \(B = W_{\overline{a}}\) branch
 --   would be taken.
