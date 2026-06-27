@@ -39,7 +39,7 @@ prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toLis
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
-  ltlxml <- readFile "refFiles/LTLFireability.xml"
+  ltlxml <- readFile "refFiles/LTLCardinality.xml"
   let ltltmp = parseLTLXMLFireability ltlxml
   print ltltmp
   pnmlModelxml <- readFile "refFiles/model.pnml"
@@ -47,7 +47,7 @@ main = do
   print (model)
   let tsPetri = (fromPetri model (getAtomics (head ltltmp)))
   writeFile "dotfiles/mccCardModelCopy.gv" (genDot tsPetri)
-  print (mccNBACheck model (head ltltmp))
+  print $ map (mccNBACheck model) ltltmp
   --let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
   --let pa = ArenaPA graph id even id
   --let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])

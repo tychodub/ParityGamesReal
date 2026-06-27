@@ -1,3 +1,5 @@
 digraph TS {
-    "fromList [(Catch1,0),(Catch2,0),(Eat,0),(Fork,0),(Think,0)]" [label = "fromList [(Catch1,0),(Catch2,0),(Eat,0),(Fork,0),(Think,0)]"];
+    "fromList [(Catch1,0),(Catch2,0),(Eat,0),(Fork,0),(Think,0)]" [label = "fromList [(Catch1,0),(Catch2,0),(Eat,0),(Fork,0),(Think,0)]
+Right (CardLE (Left 0) (Right Catch1))
+Right (CardLE (Right Think) (Right Catch1))"];
 }
