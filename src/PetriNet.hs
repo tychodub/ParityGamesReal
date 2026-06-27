@@ -1,5 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 module PetriNet where 
 import Data.Map ( (!), Map, mapWithKey, unionWith )
 import qualified Data.Map
@@ -97,6 +99,9 @@ exploreIter p (x:xs) v = exploreIter p q' v'
         q' = xs <> t
         v' = v <> t
 
-class MarkingProp a where
-    type NodeType a :: Type
-    holdsWithMarking :: a -> PetriState (NodeType a) -> Bool
+class MarkingProp a b c where
+    holdsWithMarking :: Petri b c -> a -> PetriState b -> Bool
+
+instance (MarkingProp a n arc, MarkingProp b n arc) => MarkingProp (Either a b) n arc where
+    holdsWithMarking petri (Left prop) state = holdsWithMarking petri prop state
+    holdsWithMarking petri (Right prop) state = holdsWithMarking petri prop state

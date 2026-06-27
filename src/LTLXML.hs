@@ -1,9 +1,15 @@
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module LTLXML where
 import Text.XML.Light
 import LTL
+import PetriNet (MarkingProp(..), enabled)
+import qualified Data.Map as Map
 
-parseLTLXMLFireability :: String -> [LTL String] 
-parseLTLXMLFireability s = parseLTLXML (Text.XML.Light.ppContent . head . elContent . head . elChildren) s
+parseLTLXMLFireability :: String -> [LTL (Either Fireable (Cardinality String))] 
+parseLTLXMLFireability s = parseLTLXML parseFireableOrCard s
 
 parseLTLXML :: (Show a) => (Element -> a) -> String -> [LTL a] 
 parseLTLXML f s = parsedLTL
@@ -31,3 +37,32 @@ parseLTLXMLLayer f e | eName == "until" = LTU (nextLayer l) (nextLayer r)
         nextLayer = parseLTLXMLLayer f
         (l:r:_) = elChildren e
         child = head $ elChildren e
+
+parseFireableOrCard :: Element -> Either Fireable (Cardinality String)
+parseFireableOrCard e | eName == "is-fireable" = Left $ Fireable $ cdData $ head $ onlyText $ elContent $ head (elChildren e)
+                      | eName == "integer-le" = Right $ CardLE l r
+                      | otherwise = error ("could not parse \""++eName++"\" in LTL parser as fireable or cardinality")
+    where
+        eName = qName (elName e)
+        (l:r:_) = map intOrMark (elChildren e)
+        intOrMark e2 | eName2 == "integer-constant" = Left $ read $ cdData $ head $ onlyText $ elContent e2
+                     | eName2 == "tokens-count" = Right $ cdData $ head $ onlyText $ elContent $ head $ elChildren e2
+                     | otherwise = error ("could not determine whether constant or cardinality: \""++eName2++"\"")
+            where
+                eName2 = qName (elName e2)
+
+newtype Fireable = Fireable String deriving (Show, Eq, Ord)
+
+data Cardinality a = CardLE (Either Integer a) (Either Integer a) deriving (Show, Eq, Ord)
+
+instance MarkingProp Fireable String String where
+    holdsWithMarking petri (Fireable arc) state = enabled petri state arc
+
+instance MarkingProp (Cardinality String) String String where
+    holdsWithMarking _ (CardLE l r) state = getCard l <= getCard r
+        where
+            getCard (Left n) = n
+            getCard (Right name) = case toInteger <$> state Map.!? name of
+                                        Just n -> n 
+                                        Nothing -> 0
+

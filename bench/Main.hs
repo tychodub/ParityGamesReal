@@ -8,6 +8,7 @@ import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena, Player(..))
 import ParityGames.Zielonka (zielonkaStrat)
 import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
 import ParityGames.ProgressMeasures (spmSlides)
+import ParityGames.ForcedPath (forcedPathZielonka)
 
 
 main :: IO ()
@@ -22,13 +23,14 @@ main = do
         bench "reduced nba pipeline 1" $ nf (\ltl -> reducedNBALTLCheck ts1 ltl) ltl1
         ],
         bgroup "bench part 2" ([
-            bench "zielonka sg1" . nf (\pa -> zielonkaStrat pa),
-            (\x -> bench "zielonka pruned sg1" $ nf (\pa -> zielonkaStrat pa) (let (a,_,_) = pruneLeafs x in a)),
-            bench "zielonka+pruning sg1" . nf (\pa -> zielonkaStrat (let (a,_,_) = pruneLeafs pa in a)),
-            bench "fpi sg1" . nf (\pa -> fpi pa),
+            bench "zielonka" . nf (\pa -> zielonkaStrat pa),
+            (\x -> bench "zielonka pruned" $ nf (\pa -> zielonkaStrat pa) (let (a,_,_) = pruneLeafs x in a)),
+            bench "zielonka+pruning" . nf (\pa -> zielonkaStrat (let (a,_,_) = pruneLeafs pa in a)),
+            bench "fpi" . nf (\pa -> fpi pa),
             bench "fpiFreeze" . nf (\pa -> fpiFreeze pa),
             bench "fpj" . nf (\pa -> fpj pa),
-            bench "spm" . nf (\pa -> spmSlides pa Even)
+            bench "spm" . nf (\pa -> spmSlides pa Even),
+            bench "forced paths zielonka" . nf (\pa -> forcedPathZielonka pa)
         ]<*>[smallGraph1])
         ]
 

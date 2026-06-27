@@ -1,0 +1,27 @@
+digraph nba {
+    "(fromList [(!a R !b),a],0)"[shape = doublecircle][color = "green"];
+    "(fromList [(!a R !b)],0)"[shape = doublecircle][color = "green"];
+    "(fromList [a,b],0)"[shape = doublecircle];
+    "(fromList [a],0)"[shape = doublecircle];
+    "(fromList [b],0)"[shape = doublecircle];
+    "(fromList [(!a R !b),a],0)" -> "(fromList [(!a R !b),a],0)" [label = "fromList [a]"];
+    "(fromList [(!a R !b),a],0)" -> "(fromList [(!a R !b)],0)" [label = "fromList [a]"];
+    "(fromList [(!a R !b)],0)" -> "(fromList [(!a R !b),a],0)" [label = "fromList []"];
+    "(fromList [(!a R !b)],0)" -> "(fromList [(!a R !b)],0)" [label = "fromList []"];
+    "(fromList [(!a R !b)],0)" -> "(fromList [a,b],0)" [label = "fromList []"];
+    "(fromList [(!a R !b)],0)" -> "(fromList [a],0)" [label = "fromList []"];
+    "(fromList [(!a R !b)],0)" -> "(fromList [b],0)" [label = "fromList []"];
+    "(fromList [a,b],0)" -> "(fromList [(!a R !b),a],0)" [label = "fromList [a,b]"];
+    "(fromList [a,b],0)" -> "(fromList [(!a R !b)],0)" [label = "fromList [a,b]"];
+    "(fromList [a,b],0)" -> "(fromList [a,b],0)" [label = "fromList [a,b]"];
+    "(fromList [a,b],0)" -> "(fromList [a],0)" [label = "fromList [a,b]"];
+    "(fromList [a,b],0)" -> "(fromList [b],0)" [label = "fromList [a,b]"];
+    "(fromList [a],0)" -> "(fromList [a,b],0)" [label = "fromList [a]"];
+    "(fromList [a],0)" -> "(fromList [a],0)" [label = "fromList [a]"];
+    "(fromList [a],0)" -> "(fromList [b],0)" [label = "fromList [a]"];
+    "(fromList [b],0)" -> "(fromList [(!a R !b),a],0)" [label = "fromList [b]"];
+    "(fromList [b],0)" -> "(fromList [(!a R !b)],0)" [label = "fromList [b]"];
+    "(fromList [b],0)" -> "(fromList [a,b],0)" [label = "fromList [b]"];
+    "(fromList [b],0)" -> "(fromList [a],0)" [label = "fromList [b]"];
+    "(fromList [b],0)" -> "(fromList [b],0)" [label = "fromList [b]"];
+}

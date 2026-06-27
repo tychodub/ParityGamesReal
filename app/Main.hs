@@ -15,7 +15,7 @@ import LTLGNBA (fromLTL)
 import GNBA (gnbaBimap, GNBA (transitionsGNBA), initialGNBA, acceptingGNBA)
 import NBA (nbaFromGnba, NBA (transitionsNBA, initialNBA), tsMul, dfsLasso, trimNBA)
 import Dot (genDot)
-import TS (completeTS, discreteTS, TS (tsInitial), tsParser)
+import TS (completeTS, discreteTS, TS (tsInitial), tsParser, fromPetri)
 import qualified Data.Set as Set
 import qualified GNBA
 import qualified Data.Graph as Graph
@@ -39,25 +39,19 @@ prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toLis
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
-  ltlxml <- readFile "refFiles/LTLFireability.xml"
+  ltlxml <- readFile "refFiles/LTLCardinality.xml"
   let ltltmp = parseLTLXMLFireability ltlxml
   print ltltmp
-  let gnabtmp = fromLTL (LTU (LTTerm "a") (LTG (LTR (LTTerm "b") (LTU (LTTerm "a") (LTTerm "c")))))
-  let nbatmp = nbaFromGnba gnabtmp
-  writeFile "dotFiles/tmpNBAHOA.txt" (toHOA nbatmp "tmpNBA")
-  writeFile "dotFiles/tmpNBADot.gv" (genDot nbatmp)
-  writeFile "dotFiles/tmpGNBAHOA.txt" (toHOA gnabtmp "tmpGNBA")
-  writeFile "dotFiles/tmpGNBADot.gv" (genDot gnabtmp)
-  --pnmlModelxml <- readFile "refFiles/model copy.pnml"
-  --let model = parsePNML pnmlModelxml -- PNML IS SUS
-  --print (model)
-  let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
-  let pa = ArenaPA graph id even id
-  let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
-  let graph2 = Arr.array (0,10) [(0,[4]),(1,[0]),(2,[3]),(3,[8]),(4,[5]),(5,[4]),(6,[4]),(7,[5]),(8,[9]),(9,[10]),(10,[3])]
-  let pa2 = ArenaPA graph2 id even id
-  putStrLn "done"
-  {-
+  pnmlModelxml <- readFile "refFiles/model copy.pnml"
+  let model = parsePNML pnmlModelxml -- PNML IS SUS
+  print (model)
+  print (fromPetri model (getAtomics (head ltltmp)))
+  writeFile "dotfiles/mccCardModelCopy.gv" (genDot (fromPetri model (getAtomics (head ltltmp))))
+  --let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
+  --let pa = ArenaPA graph id even id
+  --let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
+  --let graph2 = Arr.array (0,10) [(0,[4]),(1,[0]),(2,[3]),(3,[8]),(4,[5]),(5,[4]),(6,[4]),(7,[5]),(8,[9]),(9,[10]),(10,[3])]
+  --let pa2 = ArenaPA graph2 id even id
   ltlString <- getLine
   let ltl = case parse ltlParser "" ltlString of
                  Left x -> error (show x)
@@ -67,11 +61,11 @@ main = do
                         if x == "sleep" then (Set.singleton "a") else (Set.singleton  "b")
                       )
   let tsDot = genDot ts
-  writeFile "ts.gv" tsDot
+  writeFile "dotfiles/ts.gv" tsDot
   let ts2 = discreteTS (Set.fromList ["sleep", "eat", "repeat", "otherwise"]) (Set.fromList ["sleep", "otherwise"]) 
                       (\x -> if x == "sleep" then (Set.singleton "a") else (Set.singleton  "b"))
   let ts2Dot = genDot ts2
-  writeFile "ts2.gv" ts2Dot
+  writeFile "dotfiles/ts2.gv" ts2Dot
   putStrLn "ts1:"
   print $ nbaLTLCheck ts ltl
   print $ nbaLTLCheck2 ts ltl
@@ -83,43 +77,42 @@ main = do
   let atomics = getAtomics (LTNot ltl)
   let ltlnba = nbaFromGnba ltlgnba
   let ltlgnbaDot = genDot ltlgnba
-  writeFile "gnbaDot.gv" ltlgnbaDot
+  writeFile "dotfiles/gnbaDot.gv" ltlgnbaDot
   let ltlnbaDot = genDot ltlnba
-  writeFile "nbaDot.gv" ltlnbaDot
+  writeFile "dotfiles/nbaDot.gv" ltlnbaDot
   let tsTensorNBA = tsMul ts ltlnba atomics
   let tsTensorNBADot = genDot tsTensorNBA
-  writeFile "tsNBATensor.gv" tsTensorNBADot
+  writeFile "dotfiles/tsNBATensor.gv" tsTensorNBADot
   let ts2TensorNBA = tsMul ts2 ltlnba atomics
   let ts2TensorNBADot = genDot ts2TensorNBA
-  writeFile "ts2NBATensor.gv" ts2TensorNBADot
-  writeFile "ts2NBATensorTrimmed.gv" (genDot (trimNBA ts2TensorNBA))
+  writeFile "dotfiles/ts2NBATensor.gv" ts2TensorNBADot
+  writeFile "dotfiles/ts2NBATensorTrimmed.gv" (genDot (trimNBA ts2TensorNBA))
   let tsTensorGNBA = GNBA.tsMul ts ltlgnba atomics
   let tsTensorGNBADot = genDot tsTensorGNBA
-  writeFile "tsGNBATensor.gv" tsTensorGNBADot
+  writeFile "dotfiles/tsGNBATensor.gv" tsTensorGNBADot
   let ts2TensorGNBA = GNBA.tsMul ts2 ltlgnba atomics
   let ts2TensorGNBADot = genDot ts2TensorGNBA
-  writeFile "ts2GNBATensor.gv" ts2TensorGNBADot
-  -}
+  writeFile "dotfiles/ts2GNBATensor.gv" ts2TensorGNBADot
   {-
   ts3txt <- readFile "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\refFiles\\explodingTest"
   let ts3Parsed = parse tsParser "" ts3txt
   let ts3 = fromRight (error (show ts3Parsed)) ts3Parsed
   let ts3Dot = genDot ts3
-  writeFile "tsExploding.gv" ts3Dot
+  writeFile "dotfiles/tsExploding.gv" ts3Dot
   let ltlExplodeParsed = parse ltlParserInt "" "(-5 M (false <-> false))"
   let ltlExplode = fromRight (error (show ltlExplodeParsed)) $ ltlExplodeParsed
   let gnbaExplode = fromLTL (LTNot ltlExplode)
   let nbaExplode = nbaFromGnba gnbaExplode
-  writeFile "gnbaExplode.gv" (genDot gnbaExplode)
-  writeFile "nbaExplode.gv" (genDot nbaExplode)
+  writeFile "dotfiles/gnbaExplode.gv" (genDot gnbaExplode)
+  writeFile "dotfiles/nbaExplode.gv" (genDot nbaExplode)
   putStrLn "explode check:"
   print (nbaLTLCheck ts3 ltlExplode)
   print (nbaLTLCheck2 ts3 ltlExplode)
   print (gnbaLTLCheck ts3 ltlExplode)
   let mulExplode = (((tsMul ts3 (nbaFromGnba gnbaExplode) (getAtomics ltlExplode))))
   let mulGNBAExplode = (((GNBA.tsMul ts3 gnbaExplode (getAtomics ltlExplode))))
-  writeFile "mulExplode.gv" (genDot mulExplode)
-  writeFile "mulGNBAExplode.gv" (genDot mulGNBAExplode)
+  writeFile "dotfiles/mulExplode.gv" (genDot mulExplode)
+  writeFile "dotfiles/mulGNBAExplode.gv" (genDot mulGNBAExplode)
   -}
   
   -- print (length (explore (LeftForkFirst 11)))

@@ -32,7 +32,9 @@ loweruntilInteresting e | elemName == "place" = processPlace e
 processPlace :: Element -> (Petri String String, [(String, String)])
 processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking") e of
                       []   -> (Petri [placeId] mempty (Data.Map.fromList [(placeId,0)]) mempty mempty, mempty)
-                      [x]  -> (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal x)]) mempty mempty, mempty)
+                      [x]  -> if length (elChildren x) == 1 && qName (elName (head $ elChildren x)) == "text"  -- test
+                        then (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal2 x)]) mempty mempty, mempty)
+                        else (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal x)]) mempty mempty, mempty)
                       (x:xs) -> error "malformed PNML: did not expect any other child outside of marking"
     where
         markingVal x = case (read . attrVal . head . elAttribs) <$> 
@@ -40,6 +42,8 @@ processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking") e
             Nothing -> 0
             Just y  -> y :: Int
         placeId = fromJust $ findAttr (unqual "id") e
+        markingTxtTag x = head $ elChildren x
+        markingVal2 x = read $ traceShowId $ cdData $ head $ onlyText $ elContent $ markingTxtTag x :: Int
 
 processTransition :: Element -> (Petri String String, [(String, String)])
 processTransition e = (Petri mempty [transID] mempty mempty mempty, mempty)

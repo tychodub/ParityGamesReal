@@ -16,6 +16,7 @@ import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSl
 import Data.Graph (vertices)
 import ParityGames.FixedPointSolver (fpi)
 import ParityGames.FixedPointSolver (fpiFreeze, fpj)
+import ParityGames.ForcedPath (forcedPathZielonka)
 
 instance Arbitrary a => Arbitrary (LTL a) where
   arbitrary = sized ltlArb
@@ -77,6 +78,7 @@ main = do
   --writeFile "generatedGraph.gv" (genDot graph)
   --quickCheck tangleAndZielonka
   quickCheckWith (sizeArg 30) spmSlidesZielonka
+  quickCheck forcedPathConsistent
   quickCheck normalizeIdempotent
   quickCheck fpiFreezeZielonka
   quickCheck fpjZielonka
@@ -151,3 +153,8 @@ spmSlidesZielonka :: ParityArena -> Bool
 spmSlidesZielonka pa = zielonka pa == (w0,w1)
     where
       (w0,w1,_) = spmSlides pa Even
+
+forcedPathConsistent :: ParityArena -> Bool
+forcedPathConsistent pa = zielonka pa == (w0,w1)
+    where
+      (w0,w1,_,_) = forcedPathZielonka pa
