@@ -4,7 +4,7 @@ import TS
 import LTL (parseLTLInt)
 import Pipeline (nbaLTLCheck, reducedNBALTLCheck)
 import qualified GHC.Arr as Arr
-import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena, Player(..))
+import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena, Player(..), ParityGame(..))
 import ParityGames.Zielonka (zielonkaStrat)
 import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
 import ParityGames.ProgressMeasures (spmSlides)
@@ -31,9 +31,25 @@ main = do
             bench "fpj" . nf (\pa -> fpj pa),
             bench "spm" . nf (\pa -> spmSlides pa Even),
             bench "forced paths zielonka" . nf (\pa -> forcedPathZielonka pa)
-        ]<*>[smallGraph1])
+        ]<*>[smallGraph1, fmap fromEnum commonSlidePG])
         ]
 
 smallGraph1 :: ParityArena
 smallGraph1 = flatPA $ Arr.array (0,30) [(0,[9]),(1,[6]),(2,[27]),(3,[16,4]),(4,[27]),(5,[23]),(6,[30,24]),(7,[15]),(8,[15]),(9,[27]),(10,[16,6]),(11,[27]),(12,[5]),(13,[21]),(14,[26]),(15,[18,20]),(16,[26]),(17,[13,13,30]),(18,[14]),(19,[3]),(20,[26,14]),(21,[17]),(22,[9]),(23,[19]),(24,[0]),(25,[28,18]),(26,[8,1]),(27,[1]),(28,[9]),(29,[12,9]),(30,[10])]
 
+commonSlidePG :: ParityGame Char
+commonSlidePG = ArenaPA (Arr.array (0,8) [(0,[1]),(1,[0,5]),(2,[1,6]),(3,[2,4]),(4,[3,8]),
+                                          (5,[6]),(6,[7]),(7,[3,8]),(8,[4,7])]) prio owns nodeVisual
+    where
+      prio 0 = 0
+      prio 1 = 2
+      prio 2 = 7
+      prio 3 = 1
+      prio 4 = 5
+      prio 5 = 8
+      prio 6 = 6
+      prio 7 = 2
+      prio 8 = 3
+      prio n = error ("common slide PA only has 9 nodes, got value: "++show n) 
+      owns n = not (n == 1 || n == 3)
+      nodeVisual n = ['a'..'i']!!n

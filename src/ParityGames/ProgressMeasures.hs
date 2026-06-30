@@ -86,6 +86,12 @@ class LiftStrat a where
     lifted :: ParityGame b -> a -> Int -> a
     nextV :: ParityGame b -> a -> (Maybe Int,a)
 
+spm :: ParityGame a -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
+spm pa = (w0,w1,strat0,strat1)
+    where
+        (w0,w1,strat0) = spmSlides pa Even
+        (_,_,strat1) = spmSlides pa Odd
+
 spmSlides ::  ParityGame a -> Player -> (Set Int, Set Int, Set (Int, Int))
 spmSlides pa pl = (w0,w1,strat)
     where

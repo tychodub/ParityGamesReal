@@ -80,7 +80,8 @@ library
                       ParityGames.ForcedPath,
                       ParityGames.TangleLearning,
                       LTLXML,
-                      HOA
+                      HOA,
+                      ParityGames.ParityParser
 
     -- Modules included in this library but not exported.
     -- other-modules:

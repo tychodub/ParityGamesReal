@@ -44,9 +44,9 @@ zielonkaVanDijkStrat pa@(ArenaPA graph pri _ _) og
                     | bAttract == complW = if even maxPri 
                                                 then (Set.map og (w0 <> uAttract), Set.map og w1,
                                                       Set.map (bimap og og) (s0 <> sA <> picked0),
-                                                      Set.map (bimap og og) sB <> picked1) 
+                                                      Set.map (bimap og og) sB) 
                                                 else (Set.map og w0,Set.map og (w1 <> uAttract),
-                                                      Set.map (bimap og og) sB <> picked0, 
+                                                      Set.map (bimap og og) sB, 
                                                       Set.map (bimap og og) (s1 <> sA <> picked1))
                     | otherwise = if even maxPri 
                                                 then (Set.map og w0',Set.map og (w1' <> bAttract), 

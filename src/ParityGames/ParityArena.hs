@@ -74,6 +74,9 @@ instance Explorer (ParityGame a) where
     successors pa n = if n `elem` (vertices (forgetPA pa)) then Set.fromList ((forgetPA pa) Array.! n)
                             else error ("subGame got incorrect index, n: "++show n++"\ngraph: "++show (forgetPA pa))
 
+instance Functor ParityGame where
+    fmap f (ArenaPA graph pri evenOwn toNode) = ArenaPA graph pri evenOwn (f . toNode)
+
 data Player = Even | Odd deriving (Show, Eq, Ord, Enum)
 
 attractors :: ParityGame a -> Set Int -> Player -> Set Int
@@ -142,7 +145,7 @@ attractorsStrat pa xs Even strat | xs == newXs = (xs, strat)
                     then Set.insert x play
                     else play
             )) else play) Set.empty vs
-        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> Set.member y newXs) $ successorsPA pa x))) 
+        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> Set.member y newXs && y /= x) $ successorsPA pa x))) 
                            (Set.filter owns attracted)
 attractorsStrat pa xs Odd strat | xs == newXs = (xs, strat)
                                 | otherwise = attractorsStrat pa newXs Odd (strat<>newStrat)
@@ -160,6 +163,6 @@ attractorsStrat pa xs Odd strat | xs == newXs = (xs, strat)
                     then Set.insert x play
                     else play
             )) else play) Set.empty vs
-        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> Set.member y newXs) $ successorsPA pa x))) 
+        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> Set.member y newXs && y /= x) $ successorsPA pa x))) 
                    (Set.filter (not . owns) attracted)
 

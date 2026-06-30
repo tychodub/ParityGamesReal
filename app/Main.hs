@@ -22,7 +22,7 @@ import qualified Data.Graph as Graph
 import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2, mccNBACheck)
 import qualified Data.Graph as Graph
 import ParityGames.ParityArena (ParityGame(ArenaPA), subGame, pruneLeafs, flatPA, ParityArena, Player(..))
-import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides)
+import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides, spm)
 import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
 import qualified GHC.Arr as Arr
 import ParityGames.Zielonka
@@ -32,109 +32,56 @@ import Data.Maybe (fromJust)
 import LTLXML
 import HOA (HOA(toHOA))
 import LTL (LTL(..))
+import System.Environment (getArgs)
+import Data.List (stripPrefix)
+import Text.Parsec.String (Parser)
+import ParityGames.ParityParser (parityPrefixParser, parityArenaParser)
+import qualified Data.Map as Map
+import ParityGames.ForcedPath (forcedPathZielonka)
+import qualified System.IO
+import qualified Data.Foldable as Set
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
 
+oinkSolve :: FilePath -> FilePath -> 
+             (ParityArena -> (Set.Set Int, Set.Set Int, Set.Set (Int,Int), Set.Set (Int,Int))) -> IO ()
+oinkSolve fIn fOut solver = do
+  firstLine <- readFile fIn
+  let otherLines = concat (tail (lines firstLine))
+  let paritySize = case parse parityPrefixParser "" firstLine of
+                        Right parsedSize -> parsedSize
+                        Left errorMsg -> error ("parsing of prefix went stucky wucky: "++show errorMsg)
+  let parsedGame = case parse (parityArenaParser paritySize) "" otherLines of
+                        Right parsed -> parsed
+                        Left errorMsg -> error ("parsing of parity game failed: "++show errorMsg)
+  let (w0,w1,strat0,strat1) = solver parsedGame
+  let newSet = Set.map (\x -> (x,0,fmap snd $ Set.find (\(l,_) -> l==x) strat0)) w0 <>
+               Set.map (\x -> (x,1,fmap snd $ Set.find (\(l,_) -> l==x) strat1)) w1
+  let outputStr =  foldMap (\(x,n,s) -> case s of
+                            Nothing -> show x++" "++show n++"\n"
+                            Just s' -> show x++" "++show n++" "++show s'++"\n") newSet
+  writeFile fOut outputStr
+
 -- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
-  ltlxml <- readFile "refFiles/LTLCardinality.xml"
-  let ltltmp = parseLTLXMLFireability ltlxml
-  print ltltmp
-  pnmlModelxml <- readFile "refFiles/model.pnml"
-  let model = parsePNML pnmlModelxml -- PNML IS SUS
-  print (model)
-  let tsPetri = (fromPetri model (getAtomics (head ltltmp)))
-  writeFile "dotfiles/mccCardModelCopy.gv" (genDot tsPetri)
-  print $ map (mccNBACheck model) ltltmp
-  --let graph = Arr.array (0,1) [(0,[0,1]),(1,[0])]
-  --let pa = ArenaPA graph id even id
-  --let paTrivial = flatPA (Arr.array (0,2) [(0,[1]),(1,[0]),(2,[1])])
-  --let graph2 = Arr.array (0,10) [(0,[4]),(1,[0]),(2,[3]),(3,[8]),(4,[5]),(5,[4]),(6,[4]),(7,[5]),(8,[9]),(9,[10]),(10,[3])]
-  --let pa2 = ArenaPA graph2 id even id
-  {-
-  ltlString <- getLine
-  let ltl = case parse ltlParser "" ltlString of
-                 Left x -> error (show x)
-                 Right x -> x
-  let ts = completeTS (Set.fromList ["sleep", "eat", "repeat"]) (Set.fromList ["sleep"]) 
-                      (\x -> 
-                        if x == "sleep" then (Set.singleton "a") else (Set.singleton  "b")
-                      )
-  let tsDot = genDot ts
-  writeFile "dotfiles/ts.gv" tsDot
-  let ts2 = discreteTS (Set.fromList ["sleep", "eat", "repeat", "otherwise"]) (Set.fromList ["sleep", "otherwise"]) 
-                      (\x -> if x == "sleep" then (Set.singleton "a") else (Set.singleton  "b"))
-  let ts2Dot = genDot ts2
-  writeFile "dotfiles/ts2.gv" ts2Dot
-  putStrLn "ts1:"
-  print $ nbaLTLCheck ts ltl
-  print $ nbaLTLCheck2 ts ltl
-  print $ gnbaLTLCheck ts ltl
-  putStrLn "ts2:"
-  print $ gnbaLTLCheck ts2 ltl
-  print $ nbaLTLCheck ts2 ltl
-  let ltlgnba = fromLTL (LTNot ltl)
-  let atomics = getAtomics (LTNot ltl)
-  let ltlnba = nbaFromGnba ltlgnba
-  let ltlgnbaDot = genDot ltlgnba
-  writeFile "dotfiles/gnbaDot.gv" ltlgnbaDot
-  let ltlnbaDot = genDot ltlnba
-  writeFile "dotfiles/nbaDot.gv" ltlnbaDot
-  let tsTensorNBA = tsMul ts ltlnba atomics
-  let tsTensorNBADot = genDot tsTensorNBA
-  writeFile "dotfiles/tsNBATensor.gv" tsTensorNBADot
-  let ts2TensorNBA = tsMul ts2 ltlnba atomics
-  let ts2TensorNBADot = genDot ts2TensorNBA
-  writeFile "dotfiles/ts2NBATensor.gv" ts2TensorNBADot
-  writeFile "dotfiles/ts2NBATensorTrimmed.gv" (genDot (trimNBA ts2TensorNBA))
-  let tsTensorGNBA = GNBA.tsMul ts ltlgnba atomics
-  let tsTensorGNBADot = genDot tsTensorGNBA
-  writeFile "dotfiles/tsGNBATensor.gv" tsTensorGNBADot
-  let ts2TensorGNBA = GNBA.tsMul ts2 ltlgnba atomics
-  let ts2TensorGNBADot = genDot ts2TensorGNBA
-  writeFile "dotfiles/ts2GNBATensor.gv" ts2TensorGNBADot
-  -}
-  {-
-  ts3txt <- readFile "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\refFiles\\explodingTest"
-  let ts3Parsed = parse tsParser "" ts3txt
-  let ts3 = fromRight (error (show ts3Parsed)) ts3Parsed
-  let ts3Dot = genDot ts3
-  writeFile "dotfiles/tsExploding.gv" ts3Dot
-  let ltlExplodeParsed = parse ltlParserInt "" "(-5 M (false <-> false))"
-  let ltlExplode = fromRight (error (show ltlExplodeParsed)) $ ltlExplodeParsed
-  let gnbaExplode = fromLTL (LTNot ltlExplode)
-  let nbaExplode = nbaFromGnba gnbaExplode
-  writeFile "dotfiles/gnbaExplode.gv" (genDot gnbaExplode)
-  writeFile "dotfiles/nbaExplode.gv" (genDot nbaExplode)
-  putStrLn "explode check:"
-  print (nbaLTLCheck ts3 ltlExplode)
-  print (nbaLTLCheck2 ts3 ltlExplode)
-  print (gnbaLTLCheck ts3 ltlExplode)
-  let mulExplode = (((tsMul ts3 (nbaFromGnba gnbaExplode) (getAtomics ltlExplode))))
-  let mulGNBAExplode = (((GNBA.tsMul ts3 gnbaExplode (getAtomics ltlExplode))))
-  writeFile "dotfiles/mulExplode.gv" (genDot mulExplode)
-  writeFile "dotfiles/mulGNBAExplode.gv" (genDot mulGNBAExplode)
-  -}
-  
-  -- print (length (explore (LeftForkFirst 11)))
+  args <- getArgs
+  let (arg1:arg2:fileIn:fileOut:_) = if length args < 4 
+      then error "insufficient arguments provided, expected \"oink\" with a solver name and input and output file"
+      else args
+  if arg1 == "oink" 
+    then case solverMap Map.!? arg2 of
+      Just solver -> oinkSolve fileIn fileOut solver
+      Nothing -> error ("could not find solver "++arg2++"\nvalid solvers are "++show (Map.keys solverMap)) 
+    else error "first arg was not a valid option"
 
-commonSlidePG :: ParityGame Char
-commonSlidePG = ArenaPA (Arr.array (0,8) [(0,[1]),(1,[0,5]),(2,[1,6]),(3,[2,4]),(4,[3,8]),
-                                          (5,[6]),(6,[7]),(7,[3,8]),(8,[4,7])]) prio owns nodeVisual
-    where
-      prio 0 = 0
-      prio 1 = 2
-      prio 2 = 7
-      prio 3 = 1
-      prio 4 = 5
-      prio 5 = 8
-      prio 6 = 6
-      prio 7 = 2
-      prio 8 = 3
-      prio n = error ("common slide PA only has 9 nodes, got value: "++show n) 
-      owns n = not (n == 1 || n == 3)
-      nodeVisual n = ['a'..'i']!!n
-
-
+solverMap :: Map.Map String (ParityGame a -> (Set.Set Int, Set.Set Int, Set.Set (Int, Int), Set.Set (Int, Int)))
+solverMap = Map.fromList [
+                         ("fpj",fpj), -- possibly multiple strat per node
+                         ("fpi",(\pa -> let (w0,w1) = fpi pa in (w0,w1,Set.empty,Set.empty))),
+                         ("fpiFreeze",fpiFreeze), -- possibly multiple strat per node
+                         ("zielonka",zielonkaStrat),
+                         ("spm", spm),
+                         ("zielonkaPaths", forcedPathZielonka)
+                         ]
