@@ -189,7 +189,7 @@ integer :: Parser Integer
 integer = Token.integer lexer
 
 parensOr :: Parser prop ->  Parser (LTL prop) -> Parser (LTL prop)
-parensOr p' p = try p <|> parens (ltlLvl4 p')
+parensOr p' p = try (ignoreWhitespace p) <|> ignoreWhitespace (parens (ltlLvl4 p'))
 
 ltlTerm :: Parser prop -> Parser (LTL prop)
 ltlTerm p = parensOr p $ 

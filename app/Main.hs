@@ -12,9 +12,9 @@ import Text.Parsec.Prim (parse)
 import Data.Either (fromRight)
 import Data.Foldable (Foldable(toList))
 import LTLGNBA (fromLTL)
-import GNBA (gnbaBimap, GNBA (transitionsGNBA), initialGNBA, acceptingGNBA)
+import GNBA (gnbaBimap, GNBA (transitionsGNBA), initialGNBA, acceptingGNBA, gnbaAccepting)
 import NBA (nbaFromGnba, NBA (transitionsNBA, initialNBA), tsMul, dfsLasso, trimNBA)
-import Dot (genDot)
+import Dot (genDot, showNoQuotes)
 import TS (completeTS, discreteTS, TS (tsInitial), tsParser, fromPetri)
 import qualified Data.Set as Set
 import qualified GNBA
@@ -40,6 +40,9 @@ import qualified Data.Map as Map
 import ParityGames.ForcedPath (forcedPathZielonka)
 import qualified System.IO
 import qualified Data.Foldable as Set
+import System.Exit (exitSuccess)
+import LTL (parseLTL)
+import Data.Map.Lazy (keys)
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -63,18 +66,125 @@ oinkSolve fIn fOut solver = do
                             Just s' -> show x++" "++show n++" "++show s'++"\n") newSet
   writeFile fOut outputStr
 
--- try: G ((false -> true) R (true -> false))
 main :: IO ()
 main = do
   args <- getArgs
-  let (arg1:arg2:fileIn:fileOut:_) = if length args < 4 
-      then error "insufficient arguments provided, expected \"oink\" with a solver name and input and output file"
-      else args
+  if null args then putStrLn "please give an argument or write --help for an explanation" >> exitSuccess else pure ()
+  let (arg1:args') = args
+  if arg1 == "--help" 
+    then putStrLn $ "This program may be invoked with the following options:\n"
+                 ++ " - oink <solver name> <inputFile> <outputFile> where <solver name> is one of the following: "
+                 ++ show (keys solverMap)
+                 ++ "\nThe oink option is intended to be used with test_solvers from the oink parity game solver"
+                 ++ ", for example one would run \"./test_solvers -e <path to this executable> zielonka %I %O ../tests\".\n"
+                 ++ " - pnml <input file>\npnml with only one file given will try to parse the input file as a PNML file"
+                 ++ "and calculate both the amount of reachable nodes and give the reachable deadlocks of the petri net.\n"
+                 ++ " - pnml <input file> <ltl file>\nThis setting will read the first file given as a PNML file and check"
+                 ++ "the LTL formulas given in the second file in mcc format against said petri net.\n"
+                 ++ " - pnf <optional input file>\nThe pnf option converts an ltl formula/ltl formulae to positive normal form"
+                 ++ "when not given a file in mcc ltl format, the program will wait for the user to input a ltl formula in human"
+                 ++ "readable form. In this form, propositions are strings that are not one of the LTL operators."
+                 ++ "For example, \"A W B U X c & !D\" is a valid formula.\n"
+                 ++ " - gnbaltl <optional input file>\nThe gnabltl option will convert an ltl formula to a GNBA in HOA format."
+                 ++ "The gnbaltl option takes input in the same way as the pnf option.\n"
+                 ++ " - nbaltl <optional input file>\nThe gnabltl option will convert an ltl formula to a GNBA in HOA format."
+                 ++ "The nbaltl option takes input in the same way as the pnf option.\n"
+                 ++ " - ltlsatisfiable <optional input file>\nThe ltlsatisfiable option will check whether a given ltl formula "
+                 ++ "is satisfiable."
+                 ++ "The ltlsatisfiable option takes input in the same way as the pnf option."
+    else pure ()
   if arg1 == "oink" 
-    then case solverMap Map.!? arg2 of
-      Just solver -> oinkSolve fileIn fileOut solver
-      Nothing -> error ("could not find solver "++arg2++"\nvalid solvers are "++show (Map.keys solverMap)) 
-    else error "first arg was not a valid option"
+    then 
+    let (arg2:fileIn:fileOut:_) = if length args < 3
+        then error "insufficient arguments provided, expected \"oink\" with a solver name and input and output file"
+        else args' in oinkSolve fileIn fileOut (case solverMap Map.!? arg2 of
+      Just solver -> solver
+      Nothing -> error ("could not find solver "++arg2++"\nvalid solvers are "++show (Map.keys solverMap)) )
+    else pure ()
+  if arg1 == "pnml"
+    then (if null args' then error "no PNML file was given to read"
+        else if length args' == 1 then do 
+          pnmltxt <- readFile (head args')
+          let petri = parsePNML pnmltxt
+          let numMarkings = length $ explorePetri petri
+          let deadlockSet = deadlocks petri
+          putStrLn ("number of reachable marking: "++show numMarkings++"\ndeadlocks found: "++show deadlockSet)
+         else do
+          let (arg2:arg3:_) = args'
+          pnmltxt <- readFile arg2
+          let petri = parsePNML pnmltxt
+          ltltxt <- readFile arg3
+          let ltlTerms = map (\x -> (x,mccNBACheck petri x)) $ parseLTLXMLFireability ltltxt
+          putStrLn (foldMap (\(l,r) -> "- "++showNoQuotes (fmap showFireCard l)++": "++show r++"\n") ltlTerms)
+          )
+    else pure ()
+  if arg1 == "pnf"
+    then (if null args' then do
+              inputLTL <- getLine
+              let ltl = case parseLTL inputLTL of
+                             Left errorMSG -> error (show errorMSG)
+                             Right x -> x
+              print (normalize ltl)
+          else do
+            inputLTL <- readFile (head args')
+            let ltl = parseLTLXMLFireability inputLTL
+            let ltlNormalized = (map (\x -> (x,normalize x)) ltl)  
+            putStrLn (foldMap (\(l,r) -> "-  "++showNoQuotes (fmap showFireCard l)++"\n-> "++
+                                         showNoQuotes (fmap showFireCard r)++"\n") ltlNormalized))
+    else pure ()
+    
+  if arg1 == "gnbaltl"
+    then (if null args' then do
+              inputLTL <- getLine
+              let ltl = case parseLTL inputLTL of
+                             Left errorMSG -> error (show errorMSG)
+                             Right x -> x
+              let ltlGNBA = toHOA (fromLTL ltl) (showNoQuotes ltl)
+              putStrLn ltlGNBA
+          else do
+            inputLTL <- readFile (head args')
+            let ltl = parseLTLXMLFireability inputLTL
+            let ltlGNBA = (map (\x -> (toHOA (fromLTL x) (showNoQuotes (fmap showFireCard x)))) ltl)  
+            putStrLn (foldMap (\l -> l++"\n") ltlGNBA))
+    else pure ()
+      
+  if arg1 == "nbaltl"
+    then (if null args' then do
+              inputLTL <- getLine
+              let ltl = case parseLTL inputLTL of
+                             Left errorMSG -> error (show errorMSG)
+                             Right x -> x
+              let ltlGNBA = toHOA (nbaFromGnba $ fromLTL ltl) (showNoQuotes ltl)
+              putStrLn ltlGNBA
+          else do
+            inputLTL <- readFile (head args')
+            let ltl = parseLTLXMLFireability inputLTL
+            let ltlGNBA = map (\x -> (toHOA (nbaFromGnba $ fromLTL x) (showNoQuotes (fmap showFireCard x)))) ltl 
+            putStrLn (foldMap (\l -> l++"\n") ltlGNBA))
+    else pure ()
+  
+  if arg1 == "ltlsatisfiable" 
+    then 
+      if null args' then do
+          inputLTL <- getLine
+          let ltl = case parseLTL inputLTL of
+                          Left errorMSG -> error (show errorMSG)
+                          Right x -> x
+          let ltlGNBA = fromLTL ltl 
+          if gnbaAccepting ltlGNBA 
+            then putStrLn (showNoQuotes ltl++" is satisfiable") 
+            else putStrLn (showNoQuotes ltl++" is not satisfiable")
+        else do
+            inputLTL <- readFile (head args')
+            let ltl = parseLTLXMLFireability inputLTL
+            let ltlGNBA = map (\x -> (x,fromLTL x)) ltl
+            putStrLn (foldMap (\(ltl',x) -> 
+              if gnbaAccepting x 
+                then ("- "++showNoQuotes ltl'++" is satisfiable\n") 
+                else ("- "++showNoQuotes ltl'++" is not satisfiable\n")) ltlGNBA)
+    else pure ()
+  exitSuccess
+
 
 solverMap :: Map.Map String (ParityGame a -> (Set.Set Int, Set.Set Int, Set.Set (Int, Int), Set.Set (Int, Int)))
 solverMap = Map.fromList [

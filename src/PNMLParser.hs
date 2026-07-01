@@ -39,7 +39,7 @@ processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking") e
     where
         markingVal x = case (read . attrVal . head . elAttribs) <$> 
                             filterElement (\m -> qName (elName m) == "numberconstant") x of
-            Nothing -> 0
+            Nothing -> 1
             Just y  -> y :: Int
         placeId = fromJust $ findAttr (unqual "id") e
         markingTxtTag x = head $ elChildren x

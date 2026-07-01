@@ -66,3 +66,9 @@ instance MarkingProp (Cardinality String) String String where
                                         Just n -> n 
                                         Nothing -> 0
 
+showFireCard :: Either Fireable (Cardinality String) -> String
+showFireCard (Left (Fireable s)) = "(Fireable "++s++")"
+showFireCard (Right (CardLE l r)) = "("++showCard l++" <= "++showCard r++")"
+    where
+        showCard (Left n) = show n
+        showCard (Right s) = s
