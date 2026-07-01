@@ -67,7 +67,8 @@ parityArenaParser n = do
     pure (ArenaPA (boundsArr edgeList) (priMap Map.!) (`IntSet.member` ownSet) id)
     where
         boundsArr = Arr.array (0,n-1) 
-        lineParser = (\a b c d -> (a,b,c,d)) <$> int <*> int <*> int <*> sepEndBy1 int comma <* char ';'
+        lineParser = (\a b c d -> (a,b,c,d)) <$> int <*> int <*> int <*> sepEndBy1 int comma <* 
+                                                (Text.Parsec.manyTill anyChar (char ';'))
         allLinesParser = many lineParser
 
 -- output:

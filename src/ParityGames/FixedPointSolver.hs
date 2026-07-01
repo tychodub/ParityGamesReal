@@ -4,6 +4,7 @@ import qualified Data.Set as Set
 import Data.Set (Set)
 import Explorer (Explorer(..))
 import Data.Graph (vertices)
+import Debug.Trace (traceShow, traceShowId)
 
 winner :: ParityGame a -> Int -> Set Int -> Player
 winner (ArenaPA _ priority _ _) v distractions | not (v `Set.member` distractions) = if even (priority v) then Even else Odd
@@ -48,12 +49,13 @@ fpiFreeze pa@(ArenaPA graph priority owns _) = fpiHelper Set.empty 0 Set.empty S
                                               | null newDistract = fpiHelper distractions (p+1) frozen s0' s1'
                                               | otherwise = fpiHelper newestDistract 0 newFrozen s0'' s1''
             where
-                getEdgesPL distr v pl | winner pa v distr == pl = Set.singleton $ (v,Set.findMax $ Set.filter (\x -> winner pa x distr == pl) (successors pa v))
-                                      | otherwise = Set.map (\x -> (v,x)) (successors pa v)
+                getEdgesPL distr oldDistr v pl | winner pa v distr == pl = Set.singleton $ (v,
+                                                 Set.findMax $ Set.filter (\x -> winner pa x oldDistr == pl) (successors pa v))
+                                               | otherwise = Set.empty
                 nonfrozen = Set.filter (\v -> not (v `Set.member` (Set.map fst frozen))) (vp p)
                 (s0',s1') = foldl' (\(s0Iter,s1Iter) v -> if owns v 
-                    then (getEdgesPL distractions v Even <> s0Iter, s1Iter)
-                    else (s0Iter, getEdgesPL distractions v Odd <> s1Iter)) 
+                    then (getEdgesPL distractions distractions v Even <> s0Iter, s1Iter)
+                    else (s0Iter, getEdgesPL distractions distractions v Odd <> s1Iter)) 
                              (s0,s1) (nonfrozen Set.\\ distractions) 
                 w0 = Set.filter (\v -> winner pa v distractions == Even) vs
                 parity | even p = Even
@@ -73,12 +75,11 @@ fpiFreeze pa@(ArenaPA graph priority owns _) = fpiHelper Set.empty 0 Set.empty S
                 s0tmp = Set.filter (\(l,_) -> not (l `Set.member` thawed')) s0
                 s1tmp = Set.filter (\(l,_) -> not (l `Set.member` thawed')) s1
                 (newEvenDistract,newOddDistract) = Set.partition owns newDistract
-                s0'' = s0tmp <> flatmapS (\x -> getEdgesPL newestDistract x Even) newEvenDistract
-                s1'' = s1tmp <> flatmapS (\x -> getEdgesPL newestDistract x Odd) newOddDistract
+                s0'' = s0tmp <> flatmapS (\x -> getEdgesPL newestDistract distractions x Even) newEvenDistract
+                s1'' = s1tmp <> flatmapS (\x -> getEdgesPL newestDistract distractions x Odd) newOddDistract
                 flatmapS f = Set.unions . Set.map f
 
--- | returns potentially non-deterministic strategies.
---   current implementation of justification graph works mostly fine usually, as long as the graph is locally small
+-- | current implementation of justification graph works mostly fine usually, as long as the graph is locally small
 --   (there are not many vertices originating from a single vertex). Could potentially be improved with an additional map
 --   parameter to keep track of justified predecessors to turn O(n) into O(1) operation.
 fpj :: ParityGame a -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
@@ -89,15 +90,17 @@ fpj pa@(ArenaPA graph priority owns _) = fpiHelper Set.empty 0 Set.empty
         maxPri = maximum (Set.map priority vs)
         fpiHelper distractions p justified 
                                  | p > maxPri = (w0,vs Set.\\ w0, s0, s1)
-                                 | null newDistract = fpiHelper distractions (p+1) (justified<>flatmapS (getEdges accumDistract) nonJustified)
+                                 | null newDistract = fpiHelper distractions (p+1) (justified<>flatmapS (getEdges accumDistract accumDistract) nonJustified)
                                  | otherwise = fpiHelper accumDistract 0 justified3
             where
                 (s0,s1) = Set.partition (owns . fst) justified
                 nonJustified = vp p Set.\\ Set.map fst justified
-                getEdges distr v | owns v = getEdgesPL distr v Even
-                                 | otherwise = getEdgesPL distr v Odd
-                getEdgesPL distr v pl | winner pa v distr == pl = Set.singleton $ (v,Set.findMax $ Set.filter (\x -> winner pa x distr == pl) (successors pa v))
-                                      | otherwise = Set.map (\x -> (v,x)) (successors pa v)
+                getEdges distr oldDistr v | owns v = getEdgesPL distr oldDistr v Even
+                                          | otherwise = getEdgesPL distr oldDistr v Odd
+                -- Set.findMax is not right because what if it goes to itself now that it wins, but going to itself is bad
+                getEdgesPL distr oldDistr v pl | winner pa v distr == pl = Set.singleton $ (v,
+                                         Set.findMax $ Set.filter (\x -> winner pa x oldDistr == pl) (successors pa v))
+                                               | otherwise = Set.map (\x -> (v,x)) (successors pa v)
                 w0 = Set.filter (\v -> winner pa v distractions == Even) vs
                 parity | even p = Even
                        | otherwise = Odd
@@ -110,8 +113,9 @@ fpj pa@(ArenaPA graph priority owns _) = fpiHelper Set.empty 0 Set.empty
                                         flippedVS = Set.map fst justFlipped
                                         newAccum = Set.filter (\(l,_) -> not (l `Set.member` flippedVS)) midAccum
                 noMoreJustified = justified Set.\\ justifiedPruned
-                accumDistract = (distractions Set.\\ (Set.map fst noMoreJustified)) <> newDistract
-                justified3 = justifiedPruned <> flatmapS (getEdges accumDistract) newDistract
+                distractWithoutNew = (distractions Set.\\ (Set.map fst noMoreJustified))
+                accumDistract = distractWithoutNew <> newDistract
+                justified3 = justifiedPruned <> flatmapS (getEdges accumDistract distractions) newDistract
                 flatmapS f = Set.unions . Set.map f
                 
 
