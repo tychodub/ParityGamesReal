@@ -23,13 +23,6 @@ oneStep pa@(ArenaPA _ _ owns _) v distractions | owns v = if any (\u -> winner p
                                                                 then Odd
                                                                 else Even
 
-oneStepDistraction :: ParityGame a -> IntSet -> IntSet
-oneStepDistraction pa distractions = IntSet.filter (\v -> oneStep pa v distractions /= playerPri v) 
-                                                   (IntSet.fromList (vertices (forgetPA pa)))
-    where
-        playerPri v | even (prioPA pa v) = Even
-                    | otherwise = Odd
-
 fpi :: ParityGame a -> (Set Int, Set Int)
 fpi pa@(ArenaPA graph priority _ _) = bimap toSet toSet $ fpiHelper IntSet.empty 0
     where
