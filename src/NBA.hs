@@ -8,14 +8,21 @@ import qualified Data.Sequence as Seq
 import Data.Maybe (fromJust, isNothing)
 import Dot (Dot(..), showNoQuotes)
 import TS (TS (..), finTransitions)
-import Debug.Trace (trace)
 
 data NBA a b = NBA { 
-    statesNBA :: Set a,
+    statesNBA :: [a],
     initialNBA :: Set a,
-    transitionsNBA :: Set (a,b,a),
+    alphabetNBA :: Set b,
+    transitionsNBA :: a -> b -> [a],
     acceptingNBA :: Set a
-} deriving Eq
+}
+
+instance (Eq a, Eq b) => Eq (NBA a b) where
+    l == r = (Set.fromList $ statesNBA l) == (Set.fromList $ statesNBA r) && initialNBA l == initialNBA r && 
+             alphabetNBA l == alphabetNBA r &&
+             Set.fromList (transitionsNBA l<$>statesNBA l<*>Set.toList (alphabetNBA l)) == 
+                Set.fromList (transitionsNBA r<$>statesNBA r<*>Set.toList (alphabetNBA r)) &&
+             acceptingNBA l == acceptingNBA r
 
 instance (Eq a, Show a, Show b) => Show (NBA a b) where
     show nba = "states: "++concatMap (\x -> show x++i x++", ") (statesNBA nba)++"\ntransitions:\n"
@@ -27,10 +34,10 @@ instance (Eq a, Show a, Show b) => Show (NBA a b) where
 instance (Ord a) => Explorer (NBA a b) where
     type State (NBA a _) = a
     initStates = initialNBA
-    successors nba s = Set.map (\(_,_,y) -> y) $ Set.filter (\(x1,_,_) -> x1 == s) (transitionsNBA nba)
+    successors nba s = foldMap (Set.fromList . transitionsNBA nba s) (alphabetNBA nba)
 
 instance (Show a, Show b, Ord a) => Dot (NBA a b) where
-    dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\""++ifAccept y++ifInit y) (statesNBA x)
+    dotNodes x = Set.fromList $ map (\y -> "\""++showNoQuotes y++"\""++ifAccept y++ifInit y) (statesNBA x)
         where
             ifAccept y = if y `Set.member` acceptingNBA x then "[shape = doublecircle]" else ""
             ifInit y = if y `Set.member` (initialNBA x)
@@ -38,8 +45,11 @@ instance (Show a, Show b, Ord a) => Dot (NBA a b) where
                 else ""
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
-                                        "\""++showNoQuotes c++"\"")) (transitionsNBA x)
+                                        "\""++showNoQuotes c++"\"")) (finTransitionsNBA x)
     dotName _ = "nba"
+
+finTransitionsNBA :: (Ord b, Ord a) => NBA a b -> Set (a,b,a)
+finTransitionsNBA (NBA a _ c d _) = Set.fromList ([(x,y,z) | x <- a, y <- Set.toList c, z <- d x y])
 
 -- could theoretically be done without Ord b, but not worth the efficiency loss/time
 nbaFromGnba :: (Ord a, Ord b) => GNBA a b -> NBA (a, Int) b
@@ -99,13 +109,13 @@ dfsRed p s f' = dfsRedHelper (Set.toList $ successors p s) f'
                               | otherwise   = dfsRedHelper ts f
 
 reachableNBA :: Ord a => NBA a b -> NBA a b
-reachableNBA nba@(NBA s i t a) = NBA (Set.intersection s statesSpace) i newTrans (Set.intersection a statesSpace)
+reachableNBA nba@(NBA s i act t a) = NBA (Set.intersection s statesSpace) i newTrans (Set.intersection a statesSpace)
     where
         statesSpace = explore nba
         newTrans = Set.filter (\(l,_,r) -> l `Set.member` statesSpace || r `Set.member` statesSpace) t
 
 locklessNBA :: Ord a => NBA a b -> NBA a b 
-locklessNBA nba@(NBA s i t a) = if null firstLocks then nba else locklessNBA newNBA
+locklessNBA nba@(NBA s i act t a) = if null firstLocks then nba else locklessNBA newNBA
     where
         firstLocks = deadlocks nba
         newTrans = Set.filter (\(l,_,r) -> not ((l `Set.member` firstLocks) || r `Set.member` firstLocks)) t
