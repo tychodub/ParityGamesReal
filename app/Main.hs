@@ -1,44 +1,27 @@
-{-# OPTIONS_GHC -Wno-unused-imports #-}
 module Main where
 
 import PNMLParser
-import PetriNet (explorePetri, prettyPetriState)
-import Explorer (explore, deadlocks, tarjanNontrivial)
-import qualified Data.Set
-import DiningPhilosophers (LeftForkFirst(LeftForkFirst), ArbitraryFork (ArbitraryFork), CrazyFork (CrazyFork))
-import Text.Parsec (runParser, parseTest)
-import LTL (ltlParser, closure, normalize, consistentSubsetsLTL, getAtomics, LTL (LTNot, LTTerm, LTU), ltlParserInt)
+import PetriNet (explorePetri)
+import Explorer (deadlocks)
+import LTL (normalize)
 import Text.Parsec.Prim (parse)
-import Data.Either (fromRight)
 import Data.Foldable (Foldable(toList))
 import LTLGNBA (fromLTL)
-import GNBA (gnbaBimap, GNBA (transitionsGNBA), initialGNBA, acceptingGNBA, gnbaAccepting)
-import NBA (nbaFromGnba, NBA (transitionsNBA, initialNBA), tsMul, dfsLasso, trimNBA)
-import Dot (genDot, showNoQuotes)
-import TS (completeTS, discreteTS, TS (tsInitial), tsParser, fromPetri)
+import GNBA (gnbaAccepting)
+import NBA (nbaFromGnba)
+import Dot (showNoQuotes)
 import qualified Data.Set as Set
-import qualified GNBA
-import qualified Data.Graph as Graph
-import Pipeline (nbaLTLCheck, gnbaLTLCheck, nbaLTLCheck2, mccNBACheck)
-import qualified Data.Graph as Graph
-import ParityGames.ParityArena (ParityGame(ArenaPA), subGame, pruneLeafs, flatPA, ParityArena, Player(..))
-import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides, spm)
+import Pipeline (mccNBACheck)
+import ParityGames.ParityArena (ParityGame(), ParityArena)
+import ParityGames.ProgressMeasures (spm)
 import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
-import qualified GHC.Arr as Arr
 import ParityGames.Zielonka
-import ParityGames.TangleLearning
-import Data.Bifunctor (Bifunctor(bimap))
-import Data.Maybe (fromJust)
 import LTLXML
 import HOA (HOA(toHOA))
-import LTL (LTL(..))
 import System.Environment (getArgs)
-import Data.List (stripPrefix)
-import Text.Parsec.String (Parser)
 import ParityGames.ParityParser (parityPrefixParser, parityArenaParser)
 import qualified Data.Map as Map
 import ParityGames.ForcedPath (forcedPathZielonka)
-import qualified System.IO
 import qualified Data.Foldable as Set
 import System.Exit (exitSuccess)
 import LTL (parseLTL)

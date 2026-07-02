@@ -1,7 +1,7 @@
 module Main where
 import Criterion.Main
 import TS
-import LTL (parseLTLInt)
+import LTL (parseLTLInt, LTL (..))
 import Pipeline (nbaLTLCheck, reducedNBALTLCheck)
 import qualified GHC.Arr as Arr
 import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena, Player(..), ParityGame(..))
@@ -9,6 +9,7 @@ import ParityGames.Zielonka (zielonkaStrat)
 import ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj)
 import ParityGames.ProgressMeasures (spmSlides)
 import ParityGames.ForcedPath (forcedPathZielonka)
+import qualified Data.Set as Set
 
 
 main :: IO ()
@@ -17,11 +18,14 @@ main = do
     ltl1Txt <- readFile "C:\\Users\\tycho\\Documents\\Langs\\Haskell\\ParityGames\\bench\\benchExamples\\ltl1"
     let ts1 = parseTS ts1Txt
     let ltl1 = parseLTLInt ltl1Txt
+    let (TS a b c d e) = completeTS [0..50] (Set.fromList [0..5]) (\x -> Set.fromList [0..x])
+    let ts2 = TS a b (Set.singleton 0) (\s _ -> d s ()) e
+    let ltl2 = LTG (LTTerm 0)
     defaultMain [
-        bgroup "bench part 1" [
-        bench "nba pipeline 1" $ nf (\ltl -> nbaLTLCheck ts1 ltl) ltl1,
-        bench "reduced nba pipeline 1" $ nf (\ltl -> reducedNBALTLCheck ts1 ltl) ltl1
-        ],
+        bgroup "bench part 1" ([
+        bench "nba pipeline 1" . nf (\(ts,ltl) -> nbaLTLCheck ts ltl),
+        bench "reduced nba pipeline 1" . nf (\(ts,ltl) -> reducedNBALTLCheck ts ltl)
+        ]<*>[(ts1,ltl1),(ts2,ltl2)]),
         bgroup "bench part 2" ([
             bench "zielonka" . nf (\pa -> zielonkaStrat pa),
             (\x -> bench "zielonka pruned" $ nf (\pa -> zielonkaStrat pa) (let (a,_,_) = pruneLeafs x in a)),

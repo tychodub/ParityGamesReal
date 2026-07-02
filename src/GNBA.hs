@@ -57,12 +57,12 @@ gnbaBimap f g (GNBA a b c d) = GNBA (Set.map f a)
 tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> GNBA s (Set c) -> Set c -> GNBA (a,s) b 
 tsMul x y atomics = GNBA states newInitial transitions finalStates
     where
-        states = Set.cartesianProduct (tsStates x) (statesGNBA y)
-        finalStates = Set.map (foldMap (\f -> Set.map (\z -> (z,f)) (tsStates x))) (acceptingGNBA y) 
+        states = Set.cartesianProduct (Set.fromList $ tsStates x) (statesGNBA y)
+        finalStates = Set.map (foldMap (\f -> Set.map (\z -> (z,f)) (Set.fromList $ tsStates x))) (acceptingGNBA y) 
         rightCond s = Set.filter (\(_,z,_) -> z == Set.intersection atomics (tsLabels x s)) (transitionsGNBA y) 
         combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
         -- transitions are correct
-        transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (tsTransitions x)
+        transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (finTransitions x)
         initialUnfiltered = Set.cartesianProduct (tsInitial x) (statesGNBA y)
         newInitial = Set.filter (\(s,q) -> 
             any (\q' -> (q',tsLabels x s,q) `Set.member` (transitionsGNBA y)) 

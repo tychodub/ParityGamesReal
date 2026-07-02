@@ -183,4 +183,5 @@ test-suite ParityGames-bench
     build-depends:
         base ^>=4.20.0.0,
         criterion,
-        ParityGames
+        ParityGames,
+        containers

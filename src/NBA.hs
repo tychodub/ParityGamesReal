@@ -7,7 +7,7 @@ import GNBA (GNBA (..))
 import qualified Data.Sequence as Seq
 import Data.Maybe (fromJust, isNothing)
 import Dot (Dot(..), showNoQuotes)
-import TS (TS (..))
+import TS (TS (..), finTransitions)
 import Debug.Trace (trace)
 
 data NBA a b = NBA { 
@@ -57,11 +57,11 @@ nbaFromGnba (GNBA a b c d) = NBA nbaStates nbaInit nbaTransitions nbaAccept
 tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> NBA s (Set c) -> Set c -> NBA (a,s) b 
 tsMul x y atomics = NBA states newInitial transitions finalStates
     where
-        states = Set.cartesianProduct (tsStates x) (statesNBA y)
-        finalStates = Set.cartesianProduct (tsStates x) (acceptingNBA y) 
+        states = Set.cartesianProduct (Set.fromList $ tsStates x) (statesNBA y)
+        finalStates = Set.cartesianProduct (Set.fromList $ tsStates x) (acceptingNBA y) 
         rightCond s = Set.filter (\(_,z,_) -> z == Set.intersection atomics (tsLabels x s)) (transitionsNBA y) 
         combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
-        transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (tsTransitions x)
+        transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (finTransitions x)
         initialUnfiltered = Set.cartesianProduct (tsInitial x) (statesNBA y)
         newInitial = Set.filter (\(s,q) -> 
             any (\q' -> (q',tsLabels x s,q) `Set.member` (transitionsNBA y)) 

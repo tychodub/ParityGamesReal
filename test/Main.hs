@@ -38,14 +38,16 @@ sizedArb :: (Ord b, Ord a, Ord c, Arbitrary a, Arbitrary b, Arbitrary c) => Int 
 sizedArb n = do -- TS <$> states >>= initial <*> transitions <*> stateLabels
                sts <- states
                initsts <- initial sts
-               let sts' = Set.fromList sts
-               transts <- transitions sts'
-               TS sts' initsts transts <$> (stateLabels sts)
+               actions' <- actions 
+               transts <- transitions sts actions'
+               TS sts initsts (Set.fromList actions') transts <$> (stateLabels sts)
     where
+      actions = vector (min n 10)
       states = vector (max n 20)
       initial s = Set.fromList <$> (sublistOf s)
-      transitions' s = sublistOf (Set.toList (Set.cartesianProduct s s)) 
-      transitions s = Set.fromList <$> ((transitions' s) >>= (\xs -> traverse (\(l,r) -> fmap (\z -> (l,z,r)) arbitrary) xs))
+      transitions' s = sublistOf ([(l,r) | l <- s, r <- s]) 
+      transitions s acts = mconcat <$> traverse (\m -> (\xs -> foldMap (\(l,r) -> 
+        (\x y -> if x==l && y==m then [r] else [])) xs)<$>transitions' s) acts  
       stateLabels' s =  traverse (\z -> (\y -> (z,y)) <$> arbitrary) s
       stateLabels s = fmap listToFun (stateLabels' s)
       listToFun xs a = case lookup a xs of Just x -> x; Nothing -> Set.empty
@@ -77,6 +79,8 @@ main = do
   --print graph
   --writeFile "generatedGraph.gv" (genDot graph)
   --quickCheck tangleAndZielonka
+  ts <- Test.QuickCheck.generate arbitrary :: IO (TS Integer Integer Integer)
+  print ts
   quickCheckWith (sizeArg 30) spmSlidesZielonka
   quickCheck forcedPathConsistent
   quickCheck normalizeIdempotent
