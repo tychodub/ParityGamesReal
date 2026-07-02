@@ -5,16 +5,17 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 fromLTL :: Ord prop => LTL prop -> GNBA (Set (LTL prop)) (Set prop)
-fromLTL ltl = GNBA states initialStates transitions finalStates
+fromLTL ltl = GNBA states' initialStates (Set.powerSet $ getAtomics ltl) transitions finalStates
     where
         atoms = Set.map LTTerm $ getAtomics ltl
         normalizedLTL = normalize (simplifyLtl ltl)
         closureOfLTL = closure normalizedLTL
         states = consistentSubsetsLTL closureOfLTL
+        states' = Set.toList states
         initialStates = Set.filter (\x -> normalizedLTL `Set.member` x) states
-        transitions = foldMap (\s -> let sigma = Set.intersection atoms s in
-            Set.map (\x -> (s,Set.map (\(LTTerm name) -> name) sigma,x)) 
-            $ Set.filter (transitionAllowed closureOfLTL s) states) states
+        transitions s act = if Set.map LTTerm act == Set.intersection s atoms
+            then filter (transitionAllowed s (Set.map LTTerm act)) states'
+            else []
         finalStates = Set.foldl' (\s x -> case x of 
                     (LTU a b) -> flip Set.insert s $ Set.filter (\s' -> not (LTU a b `Set.member` s') || b `elemLTL` s') states
                     _ -> s) Set.empty closureOfLTL
