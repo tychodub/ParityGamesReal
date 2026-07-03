@@ -79,8 +79,6 @@ main = do
   --print graph
   --writeFile "generatedGraph.gv" (genDot graph)
   --quickCheck tangleAndZielonka
-  ts <- Test.QuickCheck.generate arbitrary :: IO (TS Integer Integer Integer)
-  print ts
   quickCheckWith (sizeArg 30) spmSlidesZielonka
   quickCheck forcedPathConsistent
   quickCheck normalizeIdempotent

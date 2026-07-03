@@ -26,6 +26,7 @@ import qualified Data.Foldable as Set
 import System.Exit (exitSuccess)
 import LTL (parseLTL)
 import Data.Map.Lazy (keys)
+import Dot
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -73,8 +74,11 @@ main = do
                  ++ " - nbaltl <optional input file>\nThe gnabltl option will convert an ltl formula to a GNBA in HOA format."
                  ++ "The nbaltl option takes input in the same way as the pnf option.\n"
                  ++ " - ltlsatisfiable <optional input file>\nThe ltlsatisfiable option will check whether a given ltl formula "
-                 ++ "is satisfiable."
-                 ++ "The ltlsatisfiable option takes input in the same way as the pnf option."
+                 ++ "is satisfiable. "
+                 ++ "The ltlsatisfiable option takes input in the same way as the pnf option.\n"
+                 ++ " - There are also the variants pnfvis, gnbaltlvis and nbaltlvis, which will write a dot file (with .gv) "
+                 ++ "extension to ltl.gv, gnba.gv and nba.gv respectively. Currently there is no support for changing where "
+                 ++ "the file gets written to (unless I ended up having time to add such support but forgot to update --help)."
     else pure ()
   if arg1 == "oink" 
     then 
@@ -101,13 +105,14 @@ main = do
           putStrLn (foldMap (\(l,r) -> "- "++showNoQuotes (fmap showFireCard l)++": "++show r++"\n") ltlTerms)
           )
     else pure ()
-  if arg1 == "pnf"
+  if arg1 == "pnf" || arg1 == "pnfvis"
     then (if null args' then do
               inputLTL <- getLine
               let ltl = case parseLTL inputLTL of
                              Left errorMSG -> error (show errorMSG)
                              Right x -> x
               print (normalize ltl)
+              if arg1 == "pnfvis" then dotWrite (pure "ltl.gv") (normalize ltl) else pure ()
           else do
             inputLTL <- readFile (head args')
             let ltl = parseLTLXMLFireability inputLTL
@@ -116,14 +121,15 @@ main = do
                                          showNoQuotes (fmap showFireCard r)++"\n") ltlNormalized))
     else pure ()
     
-  if arg1 == "gnbaltl"
+  if arg1 == "gnbaltl" || arg1 == "gnbaltlvis"
     then (if null args' then do
               inputLTL <- getLine
               let ltl = case parseLTL inputLTL of
                              Left errorMSG -> error (show errorMSG)
                              Right x -> x
-              let ltlGNBA = toHOA (fromLTL ltl) (showNoQuotes ltl)
-              putStrLn ltlGNBA
+              let ltlGNBA = fromLTL ltl
+              putStrLn (toHOA ltlGNBA (showNoQuotes ltl))
+              if arg1 == "gnbaltlvis" then dotWrite (pure "gnba.gv") ltlGNBA else pure ()
           else do
             inputLTL <- readFile (head args')
             let ltl = parseLTLXMLFireability inputLTL
@@ -131,14 +137,15 @@ main = do
             putStrLn (foldMap (\l -> l++"\n") ltlGNBA))
     else pure ()
       
-  if arg1 == "nbaltl"
+  if arg1 == "nbaltl" || arg1 == "nbaltlvis"
     then (if null args' then do
               inputLTL <- getLine
               let ltl = case parseLTL inputLTL of
                              Left errorMSG -> error (show errorMSG)
                              Right x -> x
-              let ltlGNBA = toHOA (nbaFromGnba $ fromLTL ltl) (showNoQuotes ltl)
-              putStrLn ltlGNBA
+              let ltlGNBA = nbaFromGnba $ fromLTL ltl
+              putStrLn (toHOA ltlGNBA (showNoQuotes ltl))
+              if arg1 == "nbaltlvis" then dotWrite (pure "nba.gv") ltlGNBA else pure ()
           else do
             inputLTL <- readFile (head args')
             let ltl = parseLTLXMLFireability inputLTL
@@ -171,10 +178,15 @@ main = do
 
 solverMap :: Map.Map String (ParityGame a -> (Set.Set Int, Set.Set Int, Set.Set (Int, Int), Set.Set (Int, Int)))
 solverMap = Map.fromList [
-                         ("fpj",fpj), -- possibly multiple strat per node
+                         ("fpj",fpj), 
                          ("fpi",(\pa -> let (w0,w1) = fpi pa in (w0,w1,Set.empty,Set.empty))),
-                         ("fpiFreeze",fpiFreeze), -- possibly multiple strat per node
+                         ("fpiFreeze",fpiFreeze), 
                          ("zielonka",zielonkaStrat),
                          ("spm", spm),
                          ("zielonkaPaths", forcedPathZielonka)
                          ]
+
+dotWrite :: Dot a => IO String -> a -> IO ()
+dotWrite getStr automata = do
+                        location <- getStr
+                        writeFile location (genDot automata)

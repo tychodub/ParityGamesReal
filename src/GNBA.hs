@@ -10,15 +10,23 @@ import TS
 import qualified Data.Map as Map
 
 data GNBA a b = GNBA { 
-    statesGNBA :: Set a,
+    statesGNBA :: [a],
     initialGNBA :: Set a,
-    transitionsGNBA :: Set (a,b,a),
+    alphabetGNBA :: Set b,
+    transitionsGNBA :: a -> b -> [a],
     acceptingGNBA :: Set (Set a)
-} deriving Eq
+}
 
-instance (Eq a, Show a, Show b) => Show (GNBA a b) where
+instance (Eq a, Eq b, Ord a) => Eq (GNBA a b) where
+    l == r = (Set.fromList $ statesGNBA l) == (Set.fromList $ statesGNBA r) && initialGNBA l == initialGNBA r && 
+             alphabetGNBA l == alphabetGNBA r &&
+             Set.fromList (transitionsGNBA l<$>statesGNBA l<*>Set.toList (alphabetGNBA l)) == 
+                Set.fromList (transitionsGNBA r<$>statesGNBA r<*>Set.toList (alphabetGNBA r)) &&
+             acceptingGNBA l == acceptingGNBA r
+
+instance (Show a, Show b, Ord b, Ord a) => Show (GNBA a b) where
     show gnba = "states: "++concatMap (\x -> show x++i x++", ") (statesGNBA gnba)++"\ntransitions:\n"
-                ++concatMap (\x -> show x++",\n") ((transitionsGNBA gnba))++"accepting: "
+                ++concatMap (\x -> show x++",\n") ((finTransitionsGNBA gnba))++"accepting: "
                 ++show (toList (acceptingGNBA gnba))
         where
             i x = if x `elem` (initialGNBA gnba) then " (i)" else ""
@@ -26,11 +34,11 @@ instance (Eq a, Show a, Show b) => Show (GNBA a b) where
 instance (Ord a) => Explorer (GNBA a b) where
     type State (GNBA a _) = a
     initStates = initialGNBA
-    successors gnba s = Set.map (\(_,_,y) -> y) $ Set.filter (\(x1,_,_) -> x1 == s) (transitionsGNBA gnba)
+    successors gnba s = foldMap (Set.fromList . transitionsGNBA gnba s) (alphabetGNBA gnba)
 
-instance (Show a, Ord a, Show b) => Dot (GNBA a b) where
+instance (Show a, Ord a, Show b, Ord b) => Dot (GNBA a b) where
     dotNodes :: (Show a, Show b) => GNBA a b -> Set String
-    dotNodes x = Set.map (\y -> "\""++showNoQuotes y++"\""++ifAccept y++ifInit y) (statesGNBA x)
+    dotNodes x = Set.fromList $ map (\y -> "\""++showNoQuotes y++"\""++ifAccept y++ifInit y) (statesGNBA x)
         where
             acceptIds = Seq.fromList $ toList $ acceptingGNBA x
             acceptText y = "\n" ++ Seq.foldMapWithIndex (\n z -> 
@@ -43,31 +51,24 @@ instance (Show a, Ord a, Show b) => Dot (GNBA a b) where
                 else ""
     dotArrows x = Set.map (\(a,b,c) -> ("\""++showNoQuotes a++"\"", 
                                         "\""++showNoQuotes b++"\"", 
-                                        "\""++showNoQuotes c++"\"")) (transitionsGNBA x)
+                                        "\""++showNoQuotes c++"\"")) (finTransitionsGNBA x)
     dotName _ = "gnba"
     dotpreamble _ = "    node [colorscheme = spectral11];\n"
 
-gnbaBimap :: (Ord c, Ord d) => (a -> c) -> (b -> d) -> GNBA a b -> GNBA c d
-gnbaBimap f g (GNBA a b c d) = GNBA (Set.map f a) 
-                                    (Set.map f b) 
-                                    (Set.map (\(x,y,z) -> (f x, g y, f z)) c) 
-                                    (Set.map (Set.map f) d)
+finTransitionsGNBA :: (Ord b, Ord a) => GNBA a b -> Set (a,b,a)
+finTransitionsGNBA (GNBA a _ c d _) = Set.fromList ([(x,y,z) | x <- a, y <- Set.toList c, z <- d x y])
 
 -- currently each accepting set {F1,F2,F3} becomes an accepting s `cartesianProduct` {F1,F2,F3}
-tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> GNBA s (Set c) -> Set c -> GNBA (a,s) b 
-tsMul x y atomics = GNBA states newInitial transitions finalStates
+tsMul :: (Ord a, Ord s, Ord c, Ord b) => TS a b c -> GNBA s (Set c) -> GNBA (a,s) b 
+tsMul x y = GNBA states newInitial (tsAlphabet x) transitions finalStates
     where
-        states = Set.cartesianProduct (Set.fromList $ tsStates x) (statesGNBA y)
+        states = [(l,r) | l <- (tsStates x), r <- (statesGNBA y)]
         finalStates = Set.map (foldMap (\f -> Set.map (\z -> (z,f)) (Set.fromList $ tsStates x))) (acceptingGNBA y) 
-        rightCond s = Set.filter (\(_,z,_) -> z == Set.intersection atomics (tsLabels x s)) (transitionsGNBA y) 
-        combineTransitions (l,a,r) (p,_,q) = ((l,p),a,(r,q))
-        -- transitions are correct
-        transitions = foldMap (\(l,a,r) -> Set.map (combineTransitions (l,a,r)) (rightCond r)) (finTransitions x)
-        initialUnfiltered = Set.cartesianProduct (tsInitial x) (statesGNBA y)
-        newInitial = Set.filter (\(s,q) -> 
-            any (\q' -> (q',tsLabels x s,q) `Set.member` (transitionsGNBA y)) 
-                    (initialGNBA y)) 
-                    initialUnfiltered
+        transitions (l,r) act = foldMap (\l' -> map (\r' -> (l',r')) $ transitionsGNBA y r (tsLabels x l')) 
+                               $ tsTransitions x l act
+        newInitial = foldMap (\(l,r) -> Set.map (\r' -> (l,r')) r) $ Set.map (\(s,q') -> (s,
+            (Set.fromList . transitionsGNBA y q') (tsLabels x s))) 
+            (Set.cartesianProduct (tsInitial x) (initialGNBA y))
 
 gnbaAccepting :: Ord a => GNBA a b -> Bool
 gnbaAccepting x = any sccCheck tarj 
