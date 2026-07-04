@@ -4,7 +4,6 @@ import PetriNet (Petri (..))
 import Data.Maybe (fromJust)
 import qualified Data.Map
 import Data.Map (fromListWith)
-import Debug.Trace (trace, traceShowId)
 
 parsePNML :: String -> Petri String String
 parsePNML s = arcsConvert core arcs
@@ -30,7 +29,7 @@ loweruntilInteresting e | elemName == "place" = processPlace e
         elemName = qName (elName e)
 
 processPlace :: Element -> (Petri String String, [(String, String)])
-processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking") e of
+processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking" || qName m == "initialMarking") e of
                       []   -> (Petri [placeId] mempty (Data.Map.fromList [(placeId,0)]) mempty mempty, mempty)
                       [x]  -> if length (elChildren x) == 1 && qName (elName (head $ elChildren x)) == "text"  -- test
                         then (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal2 x)]) mempty mempty, mempty)
@@ -43,7 +42,7 @@ processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking") e
             Just y  -> y :: Int
         placeId = fromJust $ findAttr (unqual "id") e
         markingTxtTag x = head $ elChildren x
-        markingVal2 x = read $ traceShowId $ cdData $ head $ onlyText $ elContent $ markingTxtTag x :: Int
+        markingVal2 x = read $ cdData $ head $ onlyText $ elContent $ markingTxtTag x :: Int
 
 processTransition :: Element -> (Petri String String, [(String, String)])
 processTransition e = (Petri mempty [transID] mempty mempty mempty, mempty)

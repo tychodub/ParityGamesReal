@@ -14,7 +14,7 @@ fromLTL ltl = GNBA states' initialStates (Set.powerSet $ getAtomics ltl) transit
         states' = Set.toList states
         initialStates = Set.filter (\x -> normalizedLTL `Set.member` x) states
         transitions s act = if Set.map LTTerm act == Set.intersection s atoms
-            then filter (transitionAllowed s (Set.map LTTerm act)) states'
+            then filter (transitionAllowed closureOfLTL s) states'
             else []
         finalStates = Set.foldl' (\s x -> case x of 
                     (LTU a b) -> flip Set.insert s $ Set.filter (\s' -> not (LTU a b `Set.member` s') || b `elemLTL` s') states

@@ -2,7 +2,7 @@ module Main where
 
 import PNMLParser
 import PetriNet (explorePetri)
-import Explorer (deadlocks)
+import Explorer (deadlocks, explore)
 import LTL (normalize)
 import Text.Parsec.Prim (parse)
 import Data.Foldable (Foldable(toList))
@@ -27,6 +27,7 @@ import System.Exit (exitSuccess)
 import LTL (parseLTL)
 import Data.Map.Lazy (keys)
 import Dot
+import DiningPhilosophers (LeftForkFirst(LeftForkFirst), ArbitraryFork (ArbitraryFork), CrazyFork (CrazyFork))
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
@@ -76,6 +77,13 @@ main = do
                  ++ " - ltlsatisfiable <optional input file>\nThe ltlsatisfiable option will check whether a given ltl formula "
                  ++ "is satisfiable. "
                  ++ "The ltlsatisfiable option takes input in the same way as the pnf option.\n"
+                 ++ " - philoL\nThis option will prompt the user for a number. For said number of philosophers that always pick " 
+                 ++ "up the left fork first, the size of the state space and the amount of possible deadlocks gets reported.\n"
+                 ++ " - philoArb\nThis option will prompt the user for a number. For said number of philosophers that may pick " 
+                 ++ "up any fork first, the size of the state space and the amount of possible deadlocks gets reported.\n"
+                 ++ " - philoR\nThis option will prompt the user for a number. When given the number n, " 
+                 ++ "one philosopher picks up a fork from the right first and n-1 philosophers pick up a fork from the left first. " 
+                 ++ "The size of the state space and the amount of possible deadlocks gets reported.\n"
                  ++ " - There are also the variants pnfvis, gnbaltlvis and nbaltlvis, which will write a dot file (with .gv) "
                  ++ "extension to ltl.gv, gnba.gv and nba.gv respectively. Currently there is no support for changing where "
                  ++ "the file gets written to (unless I ended up having time to add such support but forgot to update --help)."
@@ -107,6 +115,7 @@ main = do
     else pure ()
   if arg1 == "pnf" || arg1 == "pnfvis"
     then (if null args' then do
+              putStrLn "please give a LTL formula:"
               inputLTL <- getLine
               let ltl = case parseLTL inputLTL of
                              Left errorMSG -> error (show errorMSG)
@@ -123,6 +132,7 @@ main = do
     
   if arg1 == "gnbaltl" || arg1 == "gnbaltlvis"
     then (if null args' then do
+              putStrLn "please give a LTL formula:"
               inputLTL <- getLine
               let ltl = case parseLTL inputLTL of
                              Left errorMSG -> error (show errorMSG)
@@ -139,6 +149,7 @@ main = do
       
   if arg1 == "nbaltl" || arg1 == "nbaltlvis"
     then (if null args' then do
+              putStrLn "please give a LTL formula:"
               inputLTL <- getLine
               let ltl = case parseLTL inputLTL of
                              Left errorMSG -> error (show errorMSG)
@@ -156,6 +167,7 @@ main = do
   if arg1 == "ltlsatisfiable" 
     then 
       if null args' then do
+          putStrLn "please give a LTL formula:"
           inputLTL <- getLine
           let ltl = case parseLTL inputLTL of
                           Left errorMSG -> error (show errorMSG)
@@ -172,6 +184,31 @@ main = do
               if gnbaAccepting x 
                 then ("- "++showNoQuotes ltl'++" is satisfiable\n") 
                 else ("- "++showNoQuotes ltl'++" is not satisfiable\n")) ltlGNBA)
+    else pure ()
+
+  if arg1 == "philoL"
+    then do
+      putStrLn "please give an integer:"
+      num <- readLn
+      let phil = LeftForkFirst num
+      putStrLn ("number of reachable states: "++show (length (explore phil)))
+      putStrLn ("deadlocks: "++show (length $ deadlocks phil))
+    else pure ()
+  if arg1 == "philoArb"
+    then do
+      putStrLn "please give an integer:"
+      num <- readLn
+      let phil = ArbitraryFork num
+      putStrLn ("number of reachable states: "++show (length (explore phil)))
+      putStrLn ("deadlocks: "++show (length $ deadlocks phil))
+    else pure ()
+  if arg1 == "philoR"
+    then do
+      putStrLn "please give an integer:"
+      num <- readLn
+      let phil = CrazyFork num 0
+      putStrLn ("number of reachable states: "++show (length (explore phil)))
+      putStrLn ("deadlocks: "++show (length $ deadlocks phil))
     else pure ()
   exitSuccess
 
