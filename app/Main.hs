@@ -9,7 +9,6 @@ import Data.Foldable (Foldable(toList))
 import LTLGNBA (fromLTL)
 import GNBA (gnbaAccepting)
 import NBA (nbaFromGnba)
-import Dot (showNoQuotes)
 import qualified Data.Set as Set
 import Pipeline (mccNBACheck)
 import ParityGames.ParityArena (ParityGame(), ParityArena)
