@@ -31,8 +31,8 @@ main = do
         ]<*>[(ts1,ltl1),(ts2,ltl2),(ts3,ltl3)]),
         bgroup "bench part 2" ([
             bench "zielonka" . nf (\pa -> zielonkaStrat pa),
-            (\x -> bench "zielonka pruned" $ nf (\pa -> zielonkaStrat pa) (let (a,_,_) = pruneLeafs x in a)),
-            bench "zielonka+pruning" . nf (\pa -> zielonkaStrat (let (a,_,_) = pruneLeafs pa in a)),
+            (\x -> bench "zielonka pruned" $ nf (\pa -> zielonkaStrat pa) (let (la,_,_) = pruneLeafs x in la)),
+            bench "zielonka+pruning" . nf (\pa -> zielonkaStrat (let (la,_,_) = pruneLeafs pa in la)),
             bench "fpi" . nf (\pa -> fpi pa),
             bench "fpiFreeze" . nf (\pa -> fpiFreeze pa),
             bench "fpj" . nf (\pa -> fpj pa),

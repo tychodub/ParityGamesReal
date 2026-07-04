@@ -15,8 +15,6 @@ import Text.ParserCombinators.Parsec.Token (GenTokenParser(commaSep))
 import Data.Either (fromRight)
 import PetriNet (Petri, PetriState, MarkingProp, explorePetri, enabled, perform, holdsWithMarking)
 import qualified PetriNet as Petri
-import Data.Map.Lazy (Map)
-import qualified Data.Map.Lazy as Map
 
 data TS a b c = TS {
     tsStates :: [a],

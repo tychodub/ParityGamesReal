@@ -1,9 +1,8 @@
 module ParityGames.TangleLearning where
 import ParityGames.ParityArena
-import Data.Graph (Graph, vertices, edges, graphFromEdges)
+import Data.Graph (vertices)
 import Explorer (Explorer(..), tarjanNontrivial)
 import qualified Data.Set as Set
-import Dot
 import Data.Set (Set)
 import qualified GHC.Arr as Array
 import Data.Maybe (fromJust)

@@ -67,7 +67,6 @@ library
                       LTLGNBA,
                       NBA,
                       Dot,
-                      Kripke,
                       TS,
                       Pipeline,
                       VWAA,

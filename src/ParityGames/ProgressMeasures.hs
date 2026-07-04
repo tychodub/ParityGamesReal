@@ -10,7 +10,6 @@ import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified Data.IntMap.Strict as Map
 import GHC.Arr ((!))
-import Debug.Trace (traceShowId, traceShow, trace)
 
 newtype Progress = Pr (Maybe (Seq Int)) deriving (Show, Eq)
 type ProgressMeasure = Int -> Progress -- might be worth turning into IntMap, but benchmark!
@@ -46,6 +45,7 @@ playerRange (ArenaPA graph priority _ _) pl = Seq.fromList $ reverse (Map.toList
             then Map.insertWith (+) (priority v) 1 state 
             else state) Map.empty (vertices graph)
 
+-- may be faster to encode the range as an Int and simply have a map for how much the int should be increased
 overflowIncr :: Seq (Int, Int) -> Progress -> Progress
 overflowIncr _ (Pr Nothing) = Pr Nothing
 overflowIncr range (Pr (Just xs)) | fst result = Pr Nothing
@@ -101,14 +101,14 @@ spmSlides pa pl = (w0,w1,strat)
         predecessors n = invertedGraph ! n
         initMeasure = zeroMeasure pa pl
         initQueue = filter (\v -> toEnum (priorityPA pa v `rem` 2) /= pl) (verticesPA pa)
-        loopHelper [] spm = spm
-        loopHelper (x:xs) spm = if (spm x) < (lift pa range spm x pl)
+        loopHelper [] spm' = spm'
+        loopHelper (x:xs) spm' = if (spm' x) < (lift pa range spm' x pl)
             -- predecessors may add something that's already in the queue, which is technically not optimal
             then loopHelper (predecessors x++xs) newSPM 
-            else loopHelper xs spm
+            else loopHelper xs spm'
             where
-                newSPM v | v == x = lift pa range spm x pl
-                         | otherwise = spm v
+                newSPM v | v == x = lift pa range spm' x pl
+                         | otherwise = spm' v
         resultSPM = loopHelper initQueue initMeasure
         (w0,w1) | pl == Even = Set.partition (\v -> resultSPM v /= Pr Nothing) vertexSet
                 | otherwise  = Set.partition (\v -> resultSPM v == Pr Nothing) vertexSet
@@ -159,9 +159,9 @@ guardedAttractors pa@(ArenaPA graph pri _ _) pl w u = plAdmitted u
 
 -- | based on the modified algorithm in https://arxiv.org/pdf/1509.07207
 gazdaWillemseSPMPartition :: LiftStrat a => ParityArena -> a -> (Set Int, Set Int)
-gazdaWillemseSPMPartition pa@(ArenaPA graph _ _ _) strat = partition (\v -> spm v /= Pr Nothing) (Set.fromList (vertices graph))
+gazdaWillemseSPMPartition pa@(ArenaPA graph _ _ _) strat = partition (\v -> spm' v /= Pr Nothing) (Set.fromList (vertices graph))
     where
-        spm = gazdaWillemseSPM pa strat
+        spm' = gazdaWillemseSPM pa strat
 
 gazdaWillemseSPM :: LiftStrat a => ParityArena -> a -> ProgressMeasure
 gazdaWillemseSPM pa@(ArenaPA graph _ _ _) strat = spmWithin pa mt (Set.fromList $ vertices graph) (zeroMeasure pa Even) strat
@@ -169,9 +169,9 @@ gazdaWillemseSPM pa@(ArenaPA graph _ _ _) strat = spmWithin pa mt (Set.fromList 
         mt = playerRange pa Even
 
 spmWithin :: LiftStrat a => ParityArena -> Seq (Int, Int) -> Set Int -> ProgressMeasure -> a -> ProgressMeasure
-spmWithin pa mt w spm strat | null w = spm
-                         | otherwise = let ((spm',strat',a),b) = (innerLoop spm initStrat initV) 
-                         in if b then spm' else spmWithin pa mt (w Set.\\ a) spm' strat'
+spmWithin pa mt w spmArg strat | null w = spmArg
+                               | otherwise = let ((spm',strat',a),b) = (innerLoop spmArg initStrat initV) 
+                                             in if b then spm' else spmWithin pa mt (w Set.\\ a) spm' strat'
     where
         (initV, initStrat) = nextV pa strat
         innerLoop spm' strat' Nothing = breakCond spm' strat'
@@ -187,13 +187,13 @@ spmWithin pa mt w spm strat | null w = spm
 
 beforeForAll1 :: LiftStrat a => ParityArena -> Seq (Int, Int) -> Set Int -> ProgressMeasure -> a -> Int 
                  -> (ProgressMeasure, a, Set Int)
-beforeForAll1 pa@(ArenaPA _ pri _ _) precomputedRange w spm strat v = (spmNew3, strat, a)
+beforeForAll1 pa@(ArenaPA _ pri _ _) precomputedRange w spm' strat v = (spmNew3, strat, a)
     where
         k = pri v
         -- sigma is for computing winning strategies, not of interest for now
         --sigma = foldl' (\s x -> if pri x > pri s then x else s) minBound (Set.intersection (successors pa v) (Set.fromList $ toList w'))
         res1 = guardedAttractors pa Even w (Set.singleton v)
-        spmNew1 = \x -> if x `Set.member` (Set.delete v res1) then Pr Nothing else spm x
+        spmNew1 = \x -> if x `Set.member` (Set.delete v res1) then Pr Nothing else spm' x
         irr1 = guardedAttractors pa Odd w (Set.filter (\x -> pri x < k) w)
         rem1 = w Set.\\ (res1 <> irr1)
         spmNew2 = spmWithin pa precomputedRange rem1 spmNew1 (SubS (rem1,strat)) 

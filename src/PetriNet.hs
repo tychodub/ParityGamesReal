@@ -9,7 +9,6 @@ import qualified Explorer (Explorer (..))
 import qualified Data.Set
 import Dot (Dot(..), showNoQuotes)
 import qualified Data.Set as Set
-import Data.Kind (Type)
 
 data Petri a b = Petri {
     places :: [a], 

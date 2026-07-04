@@ -7,7 +7,7 @@ import GNBA (GNBA (..))
 import qualified Data.Sequence as Seq
 import Data.Maybe (fromJust, isNothing)
 import Dot (Dot(..), showNoQuotes)
-import TS (TS (..), finTransitions)
+import TS (TS (..))
 
 data NBA a b = NBA { 
     statesNBA :: [a],

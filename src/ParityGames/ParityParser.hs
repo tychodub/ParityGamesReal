@@ -3,7 +3,6 @@ import Text.Parsec
 import Text.ParserCombinators.Parsec (Parser)
 import qualified Text.Parsec.Token as Token
 import Text.Parsec.Language (emptyDef)
-import Text.ParserCombinators.Parsec.Token (GenTokenParser(commaSep))
 import ParityGames.ParityArena
 import Data.Functor.Identity (Identity)
 import qualified GHC.Arr as Arr

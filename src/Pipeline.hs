@@ -66,8 +66,7 @@ reducedNBALTLCheck x y = not $ dfsAcceptingLasso prod
         gnba = fromLTL negy
         nba' = nbaFromGnba gnba
         nba = trimNBA nba'
-        prod' = tsMul x nba
-        prod = trimNBA prod'
+        prod = tsMul x nba
 
 reducedNBALTLCheck2 :: (Ord prop, Ord a, Ord b) => TS a b prop -> LTL prop -> Bool
 reducedNBALTLCheck2 x y = not $ any (\parts -> any (\part -> any (\x' -> x' `Set.member` (acceptingNBA prod)) part) (elems parts)) tarj

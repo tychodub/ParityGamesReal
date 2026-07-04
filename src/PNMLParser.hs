@@ -34,7 +34,7 @@ processPlace e = case filterChildrenName (\m -> qName m == "hlinitialMarking" ||
                       [x]  -> if length (elChildren x) == 1 && qName (elName (head $ elChildren x)) == "text"  -- test
                         then (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal2 x)]) mempty mempty, mempty)
                         else (Petri [placeId] mempty (Data.Map.fromList [(placeId,markingVal x)]) mempty mempty, mempty)
-                      (x:xs) -> error "malformed PNML: did not expect any other child outside of marking"
+                      (_:_) -> error "malformed PNML: did not expect any other child outside of marking"
     where
         markingVal x = case (read . attrVal . head . elAttribs) <$> 
                             filterElement (\m -> qName (elName m) == "numberconstant") x of
