@@ -8,6 +8,8 @@ import Data.Set (Set)
 import qualified GHC.Arr as Array
 import Data.Maybe (fromJust)
 import qualified Data.Graph as Graph
+import Data.IntSet (IntSet)
+import qualified Data.IntSet as IntSet
 
 class ParityClass a where
     verticesPA :: a -> [Int]
@@ -79,19 +81,19 @@ instance Functor ParityGame where
 
 data Player = Even | Odd deriving (Show, Eq, Ord, Enum)
 
-attractors :: ParityGame a -> Set Int -> Player -> Set Int
+attractors :: ParityGame a -> IntSet -> Player -> IntSet
 attractors pa@(ArenaPA graph _ owns _) xs Even | xs == newXs = xs
                                                | otherwise = attractors pa newXs Even
     where
         newXs = xs <> canPlay <> mustPlay
-        canPlay = foldl' (\s (l,r) -> if r `Set.member` xs && owns l then Set.insert l s else s) Set.empty (edges graph)
-        mustPlay = Set.fromList $ filter (\x -> all (`Set.member` xs) (successors pa x)) (vertices graph)
+        canPlay = foldl' (\s (l,r) -> if r `IntSet.member` xs && owns l then IntSet.insert l s else s) IntSet.empty (edges graph)
+        mustPlay = IntSet.fromList $ filter (\x -> all (`IntSet.member` xs) (successors pa x)) (vertices graph)
 attractors pa@(ArenaPA graph _ owns _) xs Odd | xs == newXs = xs
                                               | otherwise = attractors pa newXs Odd
     where
         newXs = xs <> canPlay <> mustPlay
-        canPlay = foldl' (\s (l,r) -> if r `Set.member` xs && not (owns l) then Set.insert l s else s) Set.empty (edges graph)
-        mustPlay = Set.fromList $ filter (\x -> all (`Set.member` xs) (successors pa x)) (vertices graph)
+        canPlay = foldl' (\s (l,r) -> if r `IntSet.member` xs && not (owns l) then IntSet.insert l s else s) IntSet.empty (edges graph)
+        mustPlay = IntSet.fromList $ filter (\x -> all (`IntSet.member` xs) (successors pa x)) (vertices graph)
 
 -- not yet fully deprecated, but better to move over to SubGamePa interface
 subGame :: Foldable t => ParityGame a -> t Int -> (ParityGame a, Int -> Maybe Int, Int -> Maybe Int)
