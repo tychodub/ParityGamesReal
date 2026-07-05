@@ -24,12 +24,6 @@ main = do
     let (TS a' b' _ d' e') = discreteTS [0..50] (Set.fromList [0..5]) (\x -> Set.fromList [0..x])
     let ts3 = TS a' b' (Set.singleton 0) (\s _ -> d' s ()) e'
     let ltl3 = LTG (LTTerm 0)
-    let myltlW = LTW (LTTerm (-9)) (LTNot (LTTerm (-9)))
-    let myltlU = LTU (LTTerm (-9)) (LTNot (LTTerm (-9)))
-    print (nbaLTLCheck ts1 myltlW)
-    print (nbaLTLCheck ts1 myltlU)
-    -- -9 W !(-9)
-    -- -9 U !(-9)
     defaultMain [
         bgroup "bench part 1" ([
         bench "nba pipeline 1" . nf (\(ts,ltl) -> nbaLTLCheck ts ltl),

@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 module PetriNet where 
-import Data.Map ( (!), Map, mapWithKey, unionWith )
+import Data.Map ( (!), Map, mapWithKey, unionWith, (!?) )
 import qualified Data.Map
 import qualified Explorer (Explorer (..))
 import qualified Data.Set
@@ -53,21 +53,21 @@ instance (Show a, Show b, Ord b) => Dot (Petri a b) where
                                             ,"\"N" ++ showNoQuotes z++"\"")) (outArr y)) arrows)
         where
             arrows = transitions x
-            inArr y = transInput x ! y
-            outArr y = transOutput x ! y
+            inArr y = case transInput x !? y of Just xs -> xs; Nothing -> []
+            outArr y = case transOutput x !? y of Just xs -> xs; Nothing -> []
     dotName _ = "petri"
 
 enabled :: (Ord a, Ord b) => Petri a b -> PetriState a -> b -> Bool
 enabled p marks t = enabledHelper xs
     where
-        xs = transInput p ! t
+        xs = case transInput p !? t of Just ys -> ys; Nothing -> []
         enabledHelper ys = all (\y -> (marks ! y) > 0) ys
 
 perform :: (Eq a, Ord b) => Petri a b -> PetriState a -> b -> PetriState a
 perform p marking x = newMarking
     where
-        ins  = transInput p ! x
-        outs = transOutput p ! x
+        ins  = case transInput p !? x of Just xs -> xs; Nothing -> []
+        outs = case transOutput p !? x of Just xs -> xs; Nothing -> []
         newMarking = Data.Map.mapWithKey 
                        (\k val -> if k `elem` ins 
                                   then val-1 
