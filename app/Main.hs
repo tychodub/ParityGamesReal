@@ -63,6 +63,7 @@ main = do
                  ++ ", for example one would run \"./test_solvers -e <path to this executable> zielonka %I %O ../tests\".\n"
                  ++ " - pnml <input file>\npnml with only one file given will try to parse the input file as a PNML file"
                  ++ "and calculate both the amount of reachable nodes and give the reachable deadlocks of the petri net.\n"
+                 ++ "note that fpi does not give a strategy, which Oink expects.\n"
                  ++ " - pnml <input file> <ltl file>\nThis setting will read the first file given as a PNML file and check"
                  ++ "the LTL formulas given in the second file in mcc format against said petri net.\n"
                  ++ " - pnf <optional input file>\nThe pnf option converts an ltl formula/ltl formulae to positive normal form"
