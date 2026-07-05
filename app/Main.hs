@@ -63,6 +63,7 @@ main = do
                  ++ ", for example one would run \"./test_solvers -e <path to this executable> zielonka %I %O ../tests\".\n"
                  ++ " - pnml <input file>\npnml with only one file given will try to parse the input file as a PNML file"
                  ++ "and calculate both the amount of reachable nodes and give the reachable deadlocks of the petri net.\n"
+                 ++ "note that fpi does not give a strategy, which Oink expects.\n"
                  ++ " - pnml <input file> <ltl file>\nThis setting will read the first file given as a PNML file and check"
                  ++ "the LTL formulas given in the second file in mcc format against said petri net.\n"
                  ++ " - pnf <optional input file>\nThe pnf option converts an ltl formula/ltl formulae to positive normal form"
@@ -85,6 +86,8 @@ main = do
                  ++ "The size of the state space and the amount of possible deadlocks gets reported.\n"
                  ++ " - There are also the variants pnfvis, gnbaltlvis and nbaltlvis, which will write a dot file (with .gv) "
                  ++ "extension to ltl.gv, gnba.gv and nba.gv respectively. Currently there is no support for changing where "
+                 ++ " - pgvis <input file>\nTakes a parity game file in Oink's format and outputs a file called pg.gv that "
+                 ++ "gives the parsed game in dot format.\n"
                  ++ "the file gets written to (unless I ended up having time to add such support but forgot to update --help)."
     else pure ()
   if arg1 == "oink" 
@@ -209,6 +212,22 @@ main = do
       putStrLn ("number of reachable states: "++show (length (explore phil)))
       putStrLn ("deadlocks: "++show (length $ deadlocks phil))
     else pure ()
+  
+  if arg1 == "pgvis" then
+    if null args' 
+      then error "no file path was given to read parity game from"
+      else do
+          firstLine <- readFile (head args')
+          let otherLines = concat (tail (lines firstLine))
+          let paritySize = case parse parityPrefixParser "" firstLine of
+                                Right parsedSize -> parsedSize
+                                Left errorMsg -> error ("parsing of prefix went stucky wucky: "++show errorMsg)
+          let parsedGame = case parse (parityArenaParser paritySize) "" otherLines of
+                                Right parsed -> parsed
+                                Left errorMsg -> error ("parsing of parity game failed: "++show errorMsg)
+          writeFile "pg.gv" (genDot parsedGame)
+    else
+      pure ()
   exitSuccess
 
 

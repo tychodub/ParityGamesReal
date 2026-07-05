@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<property-set xmlns="http://mcc.lip6.fr/">
+  <property>
+    <id>Philosophers-COL-000005-LTLFireability-00</id>
+    <description>Automatically generated</description>
+    <formula>
+      <all-paths>
+        <conjunction>
+          <is-fireable>
+                <transition>muckRefresh</transition>
+          </is-fireable>
+          <negation>
+            <is-fireable>
+                <transition>muckRefresh</transition>
+            </is-fireable>
+          </negation>
+        </conjunction>
+      </all-paths>
+    </formula>
+  </property>
+  <property>
+    <id>Philosophers-COL-000005-LTLFireability-00</id>
+    <description>Automatically generated</description>
+    <formula>
+      <all-paths>
+        <until>
+          <before>
+            <next> 
+            <is-fireable>
+                <transition>muckRefresh</transition>
+            </is-fireable>
+            </next>
+          </before>
+          <reach>
+            <is-fireable>
+                <transition>muckRefresh</transition>
+            </is-fireable>
+          </reach>
+        </until>
+      </all-paths>
+    </formula>
+  </property>
+</property-set>

@@ -8,6 +8,8 @@ import Data.Set (Set)
 import qualified GHC.Arr as Array
 import Data.Maybe (fromJust)
 import qualified Data.Graph as Graph
+import Data.IntSet (IntSet)
+import qualified Data.IntSet as IntSet
 
 class ParityClass a where
     verticesPA :: a -> [Int]
@@ -79,19 +81,19 @@ instance Functor ParityGame where
 
 data Player = Even | Odd deriving (Show, Eq, Ord, Enum)
 
-attractors :: ParityGame a -> Set Int -> Player -> Set Int
+attractors :: ParityGame a -> IntSet -> Player -> IntSet
 attractors pa@(ArenaPA graph _ owns _) xs Even | xs == newXs = xs
                                                | otherwise = attractors pa newXs Even
     where
         newXs = xs <> canPlay <> mustPlay
-        canPlay = foldl' (\s (l,r) -> if r `Set.member` xs && owns l then Set.insert l s else s) Set.empty (edges graph)
-        mustPlay = Set.fromList $ filter (\x -> all (`Set.member` xs) (successors pa x)) (vertices graph)
+        canPlay = foldl' (\s (l,r) -> if r `IntSet.member` xs && owns l then IntSet.insert l s else s) IntSet.empty (edges graph)
+        mustPlay = IntSet.fromList $ filter (\x -> all (`IntSet.member` xs) (successors pa x)) (vertices graph)
 attractors pa@(ArenaPA graph _ owns _) xs Odd | xs == newXs = xs
                                               | otherwise = attractors pa newXs Odd
     where
         newXs = xs <> canPlay <> mustPlay
-        canPlay = foldl' (\s (l,r) -> if r `Set.member` xs && not (owns l) then Set.insert l s else s) Set.empty (edges graph)
-        mustPlay = Set.fromList $ filter (\x -> all (`Set.member` xs) (successors pa x)) (vertices graph)
+        canPlay = foldl' (\s (l,r) -> if r `IntSet.member` xs && not (owns l) then IntSet.insert l s else s) IntSet.empty (edges graph)
+        mustPlay = IntSet.fromList $ filter (\x -> all (`IntSet.member` xs) (successors pa x)) (vertices graph)
 
 -- not yet fully deprecated, but better to move over to SubGamePa interface
 subGame :: Foldable t => ParityGame a -> t Int -> (ParityGame a, Int -> Maybe Int, Int -> Maybe Int)
@@ -128,7 +130,7 @@ instance Explorer (SubGamePA a) where
 subVertices :: SubGamePA a -> [Int]
 subVertices (SubGamePA (pa,vs)) = filter (`Set.member` vs) (vertices (forgetPA pa))
 
-attractorsStrat :: ParityClass a => a -> Set Int -> Player -> Set (Int, Int) -> (Set Int,Set (Int, Int))
+attractorsStrat :: ParityClass a => a -> IntSet -> Player -> Set (Int, Int) -> (IntSet,Set (Int, Int))
 attractorsStrat pa xs Even strat | xs == newXs = (xs, strat)
                                  | otherwise = attractorsStrat pa newXs Even (strat<>newStrat)
     where
@@ -136,17 +138,18 @@ attractorsStrat pa xs Even strat | xs == newXs = (xs, strat)
         vs = verticesPA pa
         newXs = xs <> attracted
         attracted = foldl' (\play x -> 
-            if not (Set.member x xs) 
+            if not (IntSet.member x xs) 
                 then (
-                if owns x && any (`Set.member` xs) (successorsPA pa x) 
-                    then Set.insert x play  
+                if owns x && any (`IntSet.member` xs) (successorsPA pa x) 
+                    then IntSet.insert x play  
                     else  (
-                if not (owns x) && all (`Set.member` xs) (successorsPA pa x) 
-                    then Set.insert x play
+                if not (owns x) && all (`IntSet.member` xs) (successorsPA pa x) 
+                    then IntSet.insert x play
                     else play
-            )) else play) Set.empty vs
-        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> Set.member y newXs && y /= x) $ successorsPA pa x))) 
-                           (Set.filter owns attracted)
+            )) else play) IntSet.empty vs
+        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> IntSet.member y newXs && y /= x) $ successorsPA pa x))) 
+                           (Set.filter owns (toSet attracted))
+        toSet = Set.fromDistinctAscList . IntSet.toAscList
 attractorsStrat pa xs Odd strat | xs == newXs = (xs, strat)
                                 | otherwise = attractorsStrat pa newXs Odd (strat<>newStrat)
     where
@@ -154,15 +157,16 @@ attractorsStrat pa xs Odd strat | xs == newXs = (xs, strat)
         vs = verticesPA pa
         newXs = xs <> attracted
         attracted = foldl' (\play x -> 
-            if not (Set.member x xs) 
+            if not (IntSet.member x xs) 
                 then (
-                if not (owns x) && any (`Set.member` xs) (successorsPA pa x) 
-                    then Set.insert x play  
+                if not (owns x) && any (`IntSet.member` xs) (successorsPA pa x) 
+                    then IntSet.insert x play  
                     else  (
-                if owns x && all (`Set.member` xs) (successorsPA pa x) 
-                    then Set.insert x play
+                if owns x && all (`IntSet.member` xs) (successorsPA pa x) 
+                    then IntSet.insert x play
                     else play
-            )) else play) Set.empty vs
-        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> Set.member y newXs && y /= x) $ successorsPA pa x))) 
-                   (Set.filter (not . owns) attracted)
+            )) else play) IntSet.empty vs
+        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> IntSet.member y newXs && y /= x) $ successorsPA pa x))) 
+                   (Set.filter (not . owns) (toSet attracted))
+        toSet = Set.fromDistinctAscList . IntSet.toAscList
 

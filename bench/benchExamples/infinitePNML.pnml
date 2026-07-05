@@ -1,0 +1,159 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+	<net id="AirplaneLD-COL-0010" type="http://www.pnml.org/version-2009/grammar/symmetricnet">
+		<page id="DocumentDefaultPage">
+			<place id="muck1">
+				<name>
+					<text>muck1</text>
+				</name>
+				<type>
+					<text>Dot</text>
+					<structure>
+						<usersort declaration="dot"/>
+					</structure>
+				</type>
+				<hlinitialMarking>
+					<text>1'(dot)</text>
+					<structure>
+						<numberof>
+							<subterm>
+								<numberconstant value="1">
+									<positive/>
+								</numberconstant>
+							</subterm>
+							<subterm>
+								<dotconstant/>
+							</subterm>
+						</numberof>
+					</structure>
+				</hlinitialMarking>
+			</place>
+            <place id="muck2">
+				<name>
+					<text>muck2</text>
+				</name>
+				<type>
+					<text>Dot</text>
+					<structure>
+						<usersort declaration="dot"/>
+					</structure>
+				</type>
+			</place>
+            <place id="muck3">
+				<name>
+					<text>muck3</text>
+				</name>
+				<type>
+					<text>Dot</text>
+					<structure>
+						<usersort declaration="dot"/>
+					</structure>
+				</type>
+			</place>
+        </page>
+           <transition id="muckSpread">
+           </transition>
+           <transition id="muckRefresh">
+           </transition>
+			<arc id="muckSpread1" source="muck1" target="muckSpread">
+				<name>
+					<text>muckSpread</text>
+				</name>
+				<hlinscription>
+					<text>1'(x)</text>
+					<structure>
+						<numberof>
+							<subterm>
+								<numberconstant value="1">
+									<positive/>
+								</numberconstant>
+							</subterm>
+							<subterm>
+								<variable refvariable="varx"/>
+							</subterm>
+						</numberof>
+					</structure>
+				</hlinscription>
+			</arc>
+			<arc id="muckSpread2" source="muckSpread" target="muck2">
+				<name>
+					<text>muckSpread</text>
+				</name>
+				<hlinscription>
+					<text>1'(x)</text>
+					<structure>
+						<numberof>
+							<subterm>
+								<numberconstant value="1">
+									<positive/>
+								</numberconstant>
+							</subterm>
+							<subterm>
+								<variable refvariable="varx"/>
+							</subterm>
+						</numberof>
+					</structure>
+				</hlinscription>
+			</arc>
+			<arc id="muckSpread3" source="muckSpread" target="muck3">
+				<name>
+					<text>muckSpread</text>
+				</name>
+				<hlinscription>
+					<text>1'(x)</text>
+					<structure>
+						<numberof>
+							<subterm>
+								<numberconstant value="1">
+									<positive/>
+								</numberconstant>
+							</subterm>
+							<subterm>
+								<variable refvariable="varx"/>
+							</subterm>
+						</numberof>
+					</structure>
+				</hlinscription>
+			</arc>
+			<arc id="muckRefresh1" source="muck2" target="muckRefresh">
+				<name>
+					<text>muckSpread</text>
+				</name>
+				<hlinscription>
+					<text>1'(x)</text>
+					<structure>
+						<numberof>
+							<subterm>
+								<numberconstant value="1">
+									<positive/>
+								</numberconstant>
+							</subterm>
+							<subterm>
+								<variable refvariable="varx"/>
+							</subterm>
+						</numberof>
+					</structure>
+				</hlinscription>
+			</arc>
+			<arc id="muckRefresh2" source="muckRefresh" target="muck1">
+				<name>
+					<text>muckSpread</text>
+				</name>
+				<hlinscription>
+					<text>1'(x)</text>
+					<structure>
+						<numberof>
+							<subterm>
+								<numberconstant value="1">
+									<positive/>
+								</numberconstant>
+							</subterm>
+							<subterm>
+								<variable refvariable="varx"/>
+							</subterm>
+						</numberof>
+					</structure>
+				</hlinscription>
+			</arc>
+	</net>
+</pnml>
