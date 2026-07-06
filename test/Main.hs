@@ -5,15 +5,14 @@ module Main (main) where
 import Test.QuickCheck
 import LTL (normalize, LTL (..), closure, getAtomics, parseLTL)
 import qualified Data.Set as Set
-import Dot (showNoQuotes, genDot)
+import Dot (showNoQuotes)
 import TS
 import Pipeline (nbaLTLCheck, nbaLTLCheck2, gnbaLTLCheck, reducedNBALTLCheck, reducedNBALTLCheck2)
 import ParityGames.ParityArena
 import ParityGames.Zielonka
 import ParityGames.TangleLearning
 import qualified Data.Graph
-import ParityGames.ProgressMeasures (llsFromPA, gazdaWillemseSPMPartition, spmSlides)
-import Data.Graph (vertices)
+import ParityGames.ProgressMeasures (spmSlides)
 import ParityGames.FixedPointSolver (fpi)
 import ParityGames.FixedPointSolver (fpiFreeze, fpj)
 import ParityGames.ForcedPath (forcedPathZielonka)

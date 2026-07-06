@@ -1,15 +1,15 @@
 module ParityGames.ProgressMeasures where
 import ParityGames.ParityArena
 import Data.Graph (vertices, transposeG)
-import Data.Set (Set, partition)
+import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Maybe (fromJust)
-import Data.Foldable (find)
 import Explorer (Explorer(successors))
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified Data.IntMap.Strict as Map
 import GHC.Arr ((!))
+import qualified GHC.Arr as Arr
 
 newtype Progress = Pr (Maybe (Seq Int)) deriving (Show, Eq)
 type ProgressMeasure = Int -> Progress -- might be worth turning into IntMap, but benchmark!
@@ -36,8 +36,9 @@ instance Semigroup Progress where
 instance Monoid Progress where
     mempty = prWrap Seq.empty
 
-playerRange :: ParityGame a -> Player -> Seq (Int, Int)
-playerRange (ArenaPA graph priority _ _) pl = Seq.fromList $ reverse (Map.toList accumSet)
+playerRange :: ParityGame a -> Player -> Arr.Array Int (Int, Int)
+playerRange (ArenaPA graph priority _ _) pl = let xs = reverse (Map.toList accumSet) 
+                                              in Arr.listArray (0,length xs-1) xs
     where
         notPri | pl == Even = odd . priority
                | otherwise  = even . priority
@@ -46,20 +47,18 @@ playerRange (ArenaPA graph priority _ _) pl = Seq.fromList $ reverse (Map.toList
             else state) Map.empty (vertices graph)
 
 -- may be faster to encode the range as an Int and simply have a map for how much the int should be increased
-overflowIncr :: Seq (Int, Int) -> Progress -> Progress
+overflowIncr :: Arr.Array Int (Int, Int) -> Progress -> Progress
 overflowIncr _ (Pr Nothing) = Pr Nothing
 overflowIncr range (Pr (Just xs)) | fst result = Pr Nothing
                                   | otherwise  = prWrap $ snd result
     where
-        incrVal i n = (n+1) `rem` (1+case fmap snd $ Seq.lookup i range of 
-            Nothing -> error ("overflowIncr index error, xs: "++show xs++", i: "++show i++", range: "++show range)
-            Just x -> x)
+        incrVal i n = (n+1) `rem` (1+(snd $ range Arr.! i))
         indexCalc i n (overflowed,xs') = if overflowed 
             then (if (incrVal i n) == 0 then True else False,Seq.update i (incrVal i n) xs') 
             else (False,xs')
         result = Seq.foldrWithIndex indexCalc (True,xs) xs
 
-prog :: Seq (Int,Int) -> Progress -> Int -> Player -> Progress
+prog :: Arr.Array Int (Int,Int) -> Progress -> Int -> Player -> Progress
 prog _ (Pr Nothing) _ _ = Pr Nothing
 prog range (Pr (Just m)) p player | pPlayer == player = Pr (Just case1Result)
                                   | otherwise = case2Result
@@ -68,11 +67,14 @@ prog range (Pr (Just m)) p player | pPlayer == player = Pr (Just case1Result)
         (prefix,toReset) = Seq.splitAt splitIndex m
         case1Result = prefix <> Seq.replicate (length toReset) 0
         case2Result = (overflowIncr range (prWrap prefix))<>prWrap (Seq.replicate (length toReset) 0)
-        splitIndex = case Seq.findIndexL (\(l,_) -> l < p) range of
-                          Just x  -> x 
-                          Nothing -> length m
+        splitIndex = case (Arr.foldlElems' (\(b,n) (l,_) -> if b 
+            then (True,n)
+            else if l < p then (True,n) else (False,n+1)
+            ) (False,0) range) of
+                          (True,r)  -> r 
+                          (False,_) -> length m
 
-lift :: ParityGame a -> Seq (Int, Int) -> ProgressMeasure -> Int -> Player -> Progress
+lift :: ParityGame a -> Arr.Array Int (Int, Int) -> ProgressMeasure -> Int -> Player -> Progress
 lift pa range f v pl | plOwns v = minimum candidates
                      | otherwise = maximum candidates
     where
@@ -158,6 +160,7 @@ guardedAttractors pa@(ArenaPA graph pri _ _) pl w u = plAdmitted u
 
 
 -- | based on the modified algorithm in https://arxiv.org/pdf/1509.07207
+{-
 gazdaWillemseSPMPartition :: LiftStrat a => ParityArena -> a -> (Set Int, Set Int)
 gazdaWillemseSPMPartition pa@(ArenaPA graph _ _ _) strat = partition (\v -> spm' v /= Pr Nothing) (Set.fromList (vertices graph))
     where
@@ -201,5 +204,5 @@ beforeForAll1 pa@(ArenaPA _ pri _ _) precomputedRange w spm' strat v = (spmNew3,
         a = guardedAttractors pa Even w dom
         outerA = a Set.\\ dom 
         spmNew3 = \x -> if x `Set.member` outerA then Pr Nothing else spmNew2 x
-        
+        -}
 -- End section gazdaWillemse

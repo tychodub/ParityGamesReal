@@ -2,7 +2,7 @@ module Main where
 import Criterion.Main
 import TS
 import LTL (parseLTLInt, LTL (..))
-import Pipeline (nbaLTLCheck, reducedNBALTLCheck)
+import Pipeline (nbaLTLCheck, reducedNBALTLCheck, gnbaLTLCheck)
 import qualified GHC.Arr as Arr
 import ParityGames.ParityArena (flatPA, pruneLeafs, ParityArena, Player(..), ParityGame(..))
 import ParityGames.Zielonka (zielonkaStrat)
@@ -27,7 +27,8 @@ main = do
     defaultMain [
         bgroup "bench part 1" ([
         bench "nba pipeline 1" . nf (\(ts,ltl) -> nbaLTLCheck ts ltl),
-        bench "reduced nba pipeline 1" . nf (\(ts,ltl) -> reducedNBALTLCheck ts ltl)
+        bench "reduced nba pipeline 1" . nf (\(ts,ltl) -> reducedNBALTLCheck ts ltl),
+        bench "gnba pipeline 1" . nf (\(ts,ltl) -> gnbaLTLCheck ts ltl)
         ]<*>[(ts1,ltl1),(ts2,ltl2),(ts3,ltl3)]),
         bgroup "bench part 2" ([
             bench "zielonka" . nf (\pa -> zielonkaStrat pa),
