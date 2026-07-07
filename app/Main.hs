@@ -29,12 +29,14 @@ import Dot
 import DiningPhilosophers (LeftForkFirst(LeftForkFirst), ArbitraryFork (ArbitraryFork), CrazyFork (CrazyFork))
 import Data.IntSet (IntSet)
 import Utils.IntSet (toSet)
+import Data.IntMap.Strict (IntMap)
+import qualified Data.IntMap.Strict as IntMap
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
 
 oinkSolve :: FilePath -> FilePath -> 
-             (ParityArena -> (IntSet, IntSet, Set.Set (Int,Int), Set.Set (Int,Int))) -> IO ()
+             (ParityArena -> (IntSet, IntSet, IntMap Int, IntMap Int)) -> IO ()
 oinkSolve fIn fOut solver = do
   firstLine <- readFile fIn
   let otherLines = concat (tail (lines firstLine))
@@ -46,8 +48,8 @@ oinkSolve fIn fOut solver = do
                         Left errorMsg -> error ("parsing of parity game failed: "++show errorMsg)
   let (w0,w1,strat0,strat1) = solver parsedGame
   print (w0<>w1)
-  let newSet = Set.map (\x -> (x,0,fmap snd $ Set.find (\(l,_) -> l==x) strat0)) (toSet w0) <>
-               Set.map (\x -> (x,1,fmap snd $ Set.find (\(l,_) -> l==x) strat1)) (toSet w1)
+  let newSet = Set.map (\x -> (x,0,strat0 IntMap.!? x)) (toSet w0) <>
+               Set.map (\x -> (x,1,strat1 IntMap.!? x)) (toSet w1)
   let outputStr =  foldMap (\(x,n,s) -> case s of
                             Nothing -> show x++" "++show n++"\n"
                             Just s' -> show x++" "++show n++" "++show s'++"\n") newSet
@@ -234,10 +236,10 @@ main = do
   exitSuccess
 
 
-solverMap :: Map.Map String (ParityGame a -> (IntSet, IntSet, Set.Set (Int, Int), Set.Set (Int, Int)))
+solverMap :: Map.Map String (ParityGame a -> (IntSet, IntSet, IntMap Int, IntMap Int))
 solverMap = Map.fromList [
                          ("fpj",fpj), 
-                         ("fpi",(\pa -> let (w0,w1) = fpi pa in (w0,w1,Set.empty,Set.empty))),
+                         ("fpi",(\pa -> let (w0,w1) = fpi pa in (w0,w1,IntMap.empty,IntMap.empty))),
                          ("fpiFreeze",fpiFreeze), 
                          ("zielonka",zielonkaStrat),
                          ("spm", spm),

@@ -12,6 +12,8 @@ import GHC.Arr ((!))
 import qualified GHC.Arr as Arr
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
+import Data.IntMap.Strict (IntMap)
+import qualified Data.IntMap.Strict as IntMap
 
 newtype Progress = Pr (Maybe (Seq Int)) deriving (Show, Eq)
 type ProgressMeasure = Int -> Progress -- might be worth turning into IntMap, but benchmark!
@@ -90,13 +92,13 @@ class LiftStrat a where
     lifted :: ParityGame b -> a -> Int -> a
     nextV :: ParityGame b -> a -> (Maybe Int,a)
 
-spm :: ParityGame a -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
+spm :: ParityGame a -> (IntSet, IntSet, IntMap Int, IntMap Int)
 spm pa = (w0,w1,strat0,strat1)
     where
         (w0,w1,strat0) = spmSlides pa Even
         (_,_,strat1) = spmSlides pa Odd
 
-spmSlides ::  ParityGame a -> Player -> (IntSet, IntSet, Set (Int, Int))
+spmSlides ::  ParityGame a -> Player -> (IntSet, IntSet, IntMap Int)
 spmSlides pa pl = (w0,w1,strat)
     where
         vertexSet = IntSet.fromList (verticesPA pa)
@@ -119,9 +121,8 @@ spmSlides pa pl = (w0,w1,strat)
         plOwns | pl == Even = ownsPA pa
                | otherwise = not . ownsPA pa
         pickSucc v = Set.findMax (Set.filter (\u -> resultSPM v == prog range (resultSPM u) (prioPA pa v) pl) (successors pa v))
-        strat | pl == Even = Set.map (\v -> (v,pickSucc v)) (toSet $ IntSet.intersection w0 (IntSet.filter plOwns vertexSet))
-              | otherwise  = Set.map (\v -> (v,pickSucc v)) (toSet $ IntSet.intersection w1 (IntSet.filter plOwns vertexSet))
-        toSet = Set.fromDistinctAscList . IntSet.toAscList
+        strat | pl == Even = IntSet.foldl' (\m v -> IntMap.insert v (pickSucc v) m) IntMap.empty (IntSet.intersection w0 (IntSet.filter plOwns vertexSet))
+              | otherwise  = IntSet.foldl' (\m v -> IntMap.insert v (pickSucc v) m) IntMap.empty (IntSet.intersection w1 (IntSet.filter plOwns vertexSet))
 
 newtype LinearLiftStrat = LLS (Int, Int) deriving (Show, Eq)
 

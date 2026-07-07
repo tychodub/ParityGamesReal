@@ -10,6 +10,8 @@ import Data.Maybe (fromJust)
 import qualified Data.Graph as Graph
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
+import qualified Data.IntMap.Strict as IntMap
+import Data.IntMap (IntMap)
 
 class ParityClass a where
     verticesPA :: a -> [Int]
@@ -130,7 +132,7 @@ instance Explorer (SubGamePA a) where
 subVertices :: SubGamePA a -> [Int]
 subVertices (SubGamePA (pa,vs)) = filter (`Set.member` vs) (vertices (forgetPA pa))
 
-attractorsStrat :: ParityClass a => a -> IntSet -> Player -> Set (Int, Int) -> (IntSet,Set (Int, Int))
+attractorsStrat :: ParityClass a => a -> IntSet -> Player -> IntMap Int -> (IntSet,IntMap Int)
 attractorsStrat pa xs Even strat | xs == newXs = (xs, strat)
                                  | otherwise = attractorsStrat pa newXs Even (strat<>newStrat)
     where
@@ -147,8 +149,9 @@ attractorsStrat pa xs Even strat | xs == newXs = (xs, strat)
                     then IntSet.insert x play
                     else play
             )) else play) IntSet.empty vs
-        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> IntSet.member y newXs && y /= x) $ successorsPA pa x))) 
-                           (Set.filter owns (toSet attracted))
+        newStrat = Set.foldl' (\m x -> 
+            IntMap.insert x (Set.findMax (Set.filter (\y -> IntSet.member y newXs && y /= x) $ successorsPA pa x)) m) 
+                           IntMap.empty (Set.filter owns (toSet attracted))
         toSet = Set.fromDistinctAscList . IntSet.toAscList
 attractorsStrat pa xs Odd strat | xs == newXs = (xs, strat)
                                 | otherwise = attractorsStrat pa newXs Odd (strat<>newStrat)
@@ -166,7 +169,7 @@ attractorsStrat pa xs Odd strat | xs == newXs = (xs, strat)
                     then IntSet.insert x play
                     else play
             )) else play) IntSet.empty vs
-        newStrat = Set.map (\x -> (x,Set.findMax (Set.filter (\y -> IntSet.member y newXs && y /= x) $ successorsPA pa x))) 
-                   (Set.filter (not . owns) (toSet attracted))
+        newStrat = Set.foldl' (\m x -> IntMap.insert x (Set.findMax (Set.filter (\y -> IntSet.member y newXs && y /= x) $ successorsPA pa x)) m) 
+                   IntMap.empty (Set.filter (not . owns) (toSet attracted))
         toSet = Set.fromDistinctAscList . IntSet.toAscList
 
