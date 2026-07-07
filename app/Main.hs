@@ -47,7 +47,6 @@ oinkSolve fIn fOut solver = do
                         Right parsed -> parsed
                         Left errorMsg -> error ("parsing of parity game failed: "++show errorMsg)
   let (w0,w1,strat0,strat1) = solver parsedGame
-  print (w0<>w1)
   let newSet = Set.map (\x -> (x,0,strat0 IntMap.!? x)) (toSet w0) <>
                Set.map (\x -> (x,1,strat1 IntMap.!? x)) (toSet w1)
   let outputStr =  foldMap (\(x,n,s) -> case s of

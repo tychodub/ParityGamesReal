@@ -13,6 +13,7 @@ import qualified Data.IntMap.Strict as Map
 import Data.Maybe (isJust, isNothing)
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
+import Debug.Trace (traceShowId, traceShow)
 
 findForcedPaths :: ParityGame a -> Player -> Int -> Map.IntMap (Int, Maybe Int)
 findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothing))
@@ -67,14 +68,29 @@ forcedPathZielonkaHelper pa@(ArenaPA graph pri _ _) og
                         mapOG ((uAttractGood,IntSet.empty,sAGood,IntMap.empty)<>(forcedPathZielonkaHelper middleGraph og'))
                         else
                         mapOG ((IntSet.empty,uAttractGood,IntMap.empty,sAGood)<>(forcedPathZielonkaHelper middleGraph og'))
-                    | otherwise = mapOG $ zielonkaStrat pa
+                    | complW == bAttract = if even maxPri 
+                                                then (IntSet.map og (w0 <> uAttract), IntSet.map og w1,
+                                                      IntMap.map og $ IntMap.mapKeys og (s0 <> sA <> picked0),
+                                                      IntMap.map og $ IntMap.mapKeys og sB) 
+                                                else (IntSet.map og w0,IntSet.map og (w1 <> uAttract),
+                                                      IntMap.map og $ IntMap.mapKeys og sB, 
+                                                      IntMap.map og $ IntMap.mapKeys og (s1 <> sA <> picked1))
+                    | otherwise = if even maxPri 
+                                                then (IntSet.map og w0',IntSet.map og (w1' <> bAttract), 
+                                                      IntMap.map og $ IntMap.mapKeys og s0', 
+                                                      IntMap.map og $ IntMap.mapKeys og (s1' <> sB)) 
+                                                else (IntSet.map og (w0' <> bAttract),IntSet.map og w1', 
+                                                      IntMap.map og $ IntMap.mapKeys og (s0' <> sB), 
+                                                      IntMap.map og $ IntMap.mapKeys og s1')
     where
         vs = vertices graph
         maxPri = maximum (map pri vs)
         uSet = IntSet.fromList $ filter (\x-> pri x==maxPri) vs
         playerFromInt n | even n = Even
                         | otherwise = Odd
-        (uAttractGood,sAGood, uAttractUnd, _) = findForcedPathsPartition pa (playerFromInt maxPri) uSet
+        (uAttractGood,sAGood, uAttractUnd, sAUnd) = findForcedPathsPartition pa (playerFromInt maxPri) uSet
+        sA = sAGood <> sAUnd
+        uAttract = uAttractGood <> uAttractUnd
         (middleGraph,middleOG,_) = subGame pa (IntSet.fromList vs IntSet.\\ uAttractGood)
         og' x = case middleOG x of 
             Just y -> y
@@ -82,4 +98,21 @@ forcedPathZielonkaHelper pa@(ArenaPA graph pri _ _) og
         mapOG (res0,res1,resStrat0,resStrat1) = (IntSet.map og res0, IntSet.map og res1, 
                                                  IntMap.map og $ IntMap.mapKeys og resStrat0, 
                                                  IntMap.map og $ IntMap.mapKeys og resStrat1)
+        vs' = IntSet.fromList vs IntSet.\\ (uAttractGood<>uAttractUnd)
+        (newGraph,og3, _) = subGame' pa vs'
+        (w0,w1,s0,s1) = forcedPathZielonkaHelper newGraph og3
+        complW = if even maxPri then w1 else w0
+        complS = if even maxPri then s1 else s0
+        playerFromIntFlipped n | even n = Odd
+                               | otherwise = Even
+        (bAttract,sB) = attractorsStrat pa complW (playerFromIntFlipped maxPri) complS
+        (ng2,og2,_) = subGame' pa (IntSet.fromList vs IntSet.\\ (bAttract))
+        (w0',w1',s0',s1') = forcedPathZielonkaHelper ng2 og2
+        (picked0,picked1) | even maxPri = IntMap.partitionWithKey (\l _ -> ownsPA pa l ) 
+                                 (IntSet.foldl' (\m z -> IntMap.insert z 
+                                    (Set.findMax (successors pa z `Set.intersection` ((toSet w0) <> (toSet uAttract)))) m) IntMap.empty uAttractUnd)
+                          | otherwise = IntMap.partitionWithKey (\l _ -> ownsPA pa l ) 
+                                 (IntSet.foldl' (\m z -> IntMap.insert z
+                                    (Set.findMax (successors pa z `Set.intersection` ((toSet w1) <> (toSet uAttract)))) m) IntMap.empty uAttractUnd)
+        toSet = Set.fromDistinctAscList . IntSet.toAscList
                                         

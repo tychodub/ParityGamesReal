@@ -80,9 +80,9 @@ main = do
   --print graph
   --writeFile "generatedGraph.gv" (genDot graph)
   --quickCheck tangleAndZielonka
+  quickCheck forcedPathConsistent
   quickCheck disjointWin
   quickCheckWith (sizeArg 30) spmSlidesZielonka
-  quickCheck forcedPathConsistent
   quickCheck normalizeIdempotent
   quickCheck fpiFreezeZielonka
   quickCheck fpjZielonka
