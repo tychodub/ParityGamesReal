@@ -16,6 +16,8 @@ import ParityGames.ProgressMeasures (spmSlides)
 import ParityGames.FixedPointSolver (fpi)
 import ParityGames.FixedPointSolver (fpiFreeze, fpj)
 import ParityGames.ForcedPath (forcedPathZielonka)
+import Data.Graph (vertices)
+import qualified Data.IntSet as IntSet
 
 instance Arbitrary a => Arbitrary (LTL a) where
   arbitrary = sized ltlArb
@@ -78,6 +80,7 @@ main = do
   --print graph
   --writeFile "generatedGraph.gv" (genDot graph)
   --quickCheck tangleAndZielonka
+  quickCheck disjointWin
   quickCheckWith (sizeArg 30) spmSlidesZielonka
   quickCheck forcedPathConsistent
   quickCheck normalizeIdempotent
@@ -132,10 +135,10 @@ zielonkaConsistent pa = zielonka pa == (w0,w1)
     where
       (w0,w1,_,_) = zielonkaStrat pa
 
-tangleAndZielonka :: ParityArena -> Bool
-tangleAndZielonka pa = zielonka pa == (w0,w1)
-    where
-      (w0,w1,_,_) = tangleLearning pa
+--tangleAndZielonka :: ParityArena -> Bool
+--tangleAndZielonka pa = zielonka pa == (w0,w1)
+--    where
+--      (w0,w1,_,_) = tangleLearning pa
 
 fpiZielonka :: ParityArena -> Bool
 fpiZielonka pa = zielonka pa == fpi pa
@@ -159,3 +162,8 @@ forcedPathConsistent :: ParityArena -> Bool
 forcedPathConsistent pa = zielonka pa == (w0,w1)
     where
       (w0,w1,_,_) = forcedPathZielonka pa
+
+disjointWin :: ParityArena -> Bool
+disjointWin pa = all (\x -> x `IntSet.member` w0 || x `IntSet.member` w1) (vertices (forgetPA pa))
+    where
+      (w0,w1) = zielonka pa

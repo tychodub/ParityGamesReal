@@ -46,15 +46,15 @@ flatParityFromEdges es = ArenaPA a id even newToNode
 pruneLeafs :: ParityGame a -> (ParityGame a, Int -> Maybe Int, Int -> Maybe Int)
 pruneLeafs pa@(ArenaPA graph _ _ _) = (newGraph, toOG, c)
     where
-        leafs = Set.filter (\x -> null (invertedG Array.! x)) $ vsSet
-        vsSet = Set.fromList (vertices graph)
-        toRemove leafs' leftover | null newLeafs = leafs'
-                                 | otherwise = toRemove (leafs' <> newLeafs) (leftover Set.\\ newLeafs)
+        leafs = IntSet.filter (\x -> null (invertedG Array.! x)) $ vsSet
+        vsSet = IntSet.fromList (vertices graph)
+        toRemove leafs' leftover | IntSet.null newLeafs = leafs'
+                                 | otherwise = toRemove (leafs' <> newLeafs) (leftover IntSet.\\ newLeafs)
             where
-                newLeafs = Set.filter (\x -> all (`elem` leafs') (invertedG Array.! x)) leftover
+                newLeafs = IntSet.filter (\x -> all (`IntSet.member` leafs') (invertedG Array.! x)) leftover
         invertedG = Graph.transposeG graph
-        finalLeafs = toRemove leafs (vsSet Set.\\ leafs)
-        leftoverVS = vsSet Set.\\ finalLeafs
+        finalLeafs = toRemove leafs (vsSet IntSet.\\ leafs)
+        leftoverVS = vsSet IntSet.\\ finalLeafs
         (newGraph,toOG,c) = subGame pa leftoverVS
 
 instance Show (ParityGame a) where
@@ -96,10 +96,10 @@ attractors pa@(ArenaPA graph _ owns _) xs Odd | xs == newXs = xs
         mustPlay = IntSet.fromList $ filter (\x -> all (`IntSet.member` xs) (successors pa x)) (vertices graph)
 
 -- not yet fully deprecated, but better to move over to SubGamePa interface
-subGame :: Foldable t => ParityGame a -> t Int -> (ParityGame a, Int -> Maybe Int, Int -> Maybe Int)
+subGame :: ParityGame a -> IntSet -> (ParityGame a, Int -> Maybe Int, Int -> Maybe Int)
 subGame (ArenaPA graph pri owns tn) s = (ArenaPA a newPri newOwns newToIndex, toOG, c) 
     where
-        vs = filter (\v -> elem v s) (vertices graph)
+        vs = filter (\v -> IntSet.member v s) (vertices graph)
         es = map (\n ->  (n,n,graph Array.! n)) vs
         (a,b,c) = Data.Graph.graphFromEdges es
         newPri n = let (x,_,_) = b n in pri x
@@ -109,7 +109,7 @@ subGame (ArenaPA graph pri owns tn) s = (ArenaPA a newPri newOwns newToIndex, to
 
 -- | deprecated, just here for backwards compatibility
 {-# DEPRECATED subGame' "subGame' is only kept for backwards compatibility, use subGame or the SubGamePA type instead" #-}
-subGame' :: Foldable t => ParityGame a -> t Int -> (ParityGame a, Int -> Int, Int -> Int)
+subGame' :: ParityGame a -> IntSet -> (ParityGame a, Int -> Int, Int -> Int)
 subGame' pa s = (newPA, fromJust . og, fromJust . toSubgraphNode)
     where
         (newPA, og, toSubgraphNode) = subGame pa s

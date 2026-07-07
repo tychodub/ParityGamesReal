@@ -10,85 +10,92 @@ import qualified Data.Graph as Graph
 import qualified Data.Foldable as Foldable
 import Data.Bifunctor (Bifunctor(..))
 import Debug.Trace (traceShowId)
+import Data.IntSet (IntSet)
+import qualified Data.IntSet as IntSet
+import qualified GHC.Arr as Arr
+import Utils.IntSet
 
 -- | Tangle carries a set of nodes, a strategy and nodes it can escape to
-newtype Tangle = Tangle (Set Int, Set (Int, Int), Set Int) deriving (Show, Eq, Ord)
+newtype Tangle = Tangle (IntSet, Set (Int, Int), IntSet) deriving (Show, Eq, Ord)
 
-tangleAttract :: ParityGame a -> Set Int -> Player -> Set (Int, Int) -> Set Tangle 
-                 -> (Set Int, Set (Int, Int))
-tangleAttract pa@(ArenaPA graph pri owns _) vs player oldStrat tangles = tangleAttractHelper vs (Set.toList vs) oldStrat
+tangleAttract :: ParityGame a -> IntSet -> Player -> Set (Int, Int) -> Set Tangle 
+                 -> (IntSet, Set (Int, Int))
+tangleAttract (ArenaPA graph pri owns _) vs player oldStrat tangles = tangleAttractHelper vs (IntSet.toList vs) oldStrat
     where
         invertedGraph = Graph.transposeG graph
         predecessors n = invertedGraph Array.! n
         playerOwns Even = owns
         playerOwns Odd  = not . owns
-        nodes = Set.fromList (vertices graph)
+        nodes = IntSet.fromList (vertices graph)
         tangleAttractHelper zSet []     strat = (zSet, strat)
         tangleAttractHelper zSet (x:xs) strat = tangleAttractHelper zSet'' xs'' strat''
             where
                 xPredecessors = predecessors x
                 (zSet',xs',strat') = foldl' (\(zSetIter,xsIter,stratIter) u -> let b1 = newPlay zSetIter u in
                     (insertIf b1 u zSetIter,insertIf2 b1 u xsIter, 
-                    if playerOwns player u && u `Set.member` (insertIf b1 u zSetIter) 
+                    if playerOwns player u && u `IntSet.member` (insertIf b1 u zSetIter) 
                         && not (u `Set.member` (Set.map fst stratIter))
                         then Set.insert (u,x) stratIter 
                         else stratIter)) 
                         (zSet,xs,strat) xPredecessors 
                     where
-                        newPlay zSetIter y = not (Set.member y zSetIter) && 
+                        newPlay zSetIter y = not (IntSet.member y zSetIter) && 
                                     (playerOwns player y ||
-                                    ((successors pa y) `Set.isSubsetOf` zSetIter))
-                        insertIf b y iterSet = if b then Set.insert y iterSet else iterSet
+                                    ((IntSet.fromList $ graph Arr.! y) `IntSet.isSubsetOf` zSetIter))
+                        insertIf b y iterSet = if b then IntSet.insert y iterSet else iterSet
                         insertIf2 b y iterSet = if b then y:iterSet else iterSet
                 (zSet'',xs'',strat'') = foldl' (\(zSetIter,xsIter,stratIter) (Tangle (tSet,tStrat,escape)) ->
-                    if tSet `Set.isSubsetOf` (nodes <> zSetIter) && escape `Set.isSubsetOf` zSetIter 
-                        then let u' = tSet Set.\\ zSetIter in (zSetIter<>u', 
-                              Set.toList (Set.fromList xsIter<>u'),
-                              stratIter<>(Set.filter (\(l,_) -> l `Set.member` u') tStrat)
+                    if tSet `IntSet.isSubsetOf` (nodes <> zSetIter) && escape `IntSet.isSubsetOf` zSetIter 
+                        then let u' = tSet IntSet.\\ zSetIter in (zSetIter<>u', 
+                              IntSet.toList (IntSet.fromList xsIter<>u'),
+                              stratIter<>(Set.filter (\(l,_) -> l `IntSet.member` u') tStrat)
                               )
                         else (zSetIter,xsIter,stratIter)) (zSet',xs',strat') 
-                        (Set.filter (\(Tangle(tSet,_,_)) -> playerOwns player $ maximum (Set.map pri tSet)) tangles) 
+                        (Set.filter (\(Tangle(tSet,_,_)) -> playerOwns player $ IntSet.findMax (IntSet.map pri tSet)) tangles) 
 
 searchTangles :: ParityGame a -> Set Tangle -> Set Tangle 
 searchTangles pa@(ArenaPA graph priority owns _) tangles | null (vertices graph) = Set.empty
                                                          | otherwise 
             = result
     where
-        vsSet = Set.fromList (vertices graph)
+        intSuccs x = IntSet.fromList $ graph Arr.! x
+        vsSet = IntSet.fromList (vertices graph)
         maxPriority = maximum (map priority (vertices graph))
-        maxVertices = Set.filter (\v -> priority v == maxPriority) vsSet
+        maxVertices = IntSet.filter (\v -> priority v == maxPriority) vsSet
         maxPlayer | even maxPriority = Even
                   | otherwise = Odd
         maxOwns | even maxPriority = owns
                 | otherwise = not . owns
         (attractedZ, stratZ) = tangleAttract pa maxVertices maxPlayer Set.empty tangles
-        (recursiveGraph, nodeFrom', vertexFrom') = subGame pa (vsSet Set.\\ attractedZ)
+        (recursiveGraph, nodeFrom', vertexFrom') = subGame pa (vsSet IntSet.\\ attractedZ)
         vertexFrom = fromJust . vertexFrom'
         nodeFrom = fromJust . nodeFrom'
         recursiveTangles = Set.map (\(Tangle (l,r,escape)) -> 
-            Tangle (Set.map vertexFrom l, Set.map (bimap vertexFrom vertexFrom) r, Set.map vertexFrom escape)) tangles 
-        result = if (Set.filter maxOwns attractedZ == Set.map fst stratZ) && 
-                    (Set.unions $ Set.map (successors pa) (Set.filter (not . maxOwns) attractedZ)) `Set.isSubsetOf` attractedZ
+            Tangle (IntSet.map vertexFrom l, Set.map (bimap vertexFrom vertexFrom) r, IntSet.map vertexFrom escape)) tangles 
+        result = if (IntSet.filter maxOwns attractedZ == toIntSet (Set.map fst stratZ)) && 
+                    (flatMap intSuccs (IntSet.filter (not . maxOwns) attractedZ)) 
+                                `IntSet.isSubsetOf` attractedZ
                     then tangleUp (searchTangles recursiveGraph recursiveTangles) <> sccTangles
                     else tangleUp (searchTangles recursiveGraph recursiveTangles) 
 
-        (zGraph,zNFrom,_) = Graph.graphFromEdges (map (\x -> (x,x,graph Array.! x)) (Set.toList attractedZ))
-        bottomSCCs'' = Set.unions $ map (Set.fromList . Foldable.toList) $ map (tarjanNontrivial zGraph) (vertices zGraph)
-        bottomSCCs' = Set.map (Set.map (\x -> let (a,_,_) = zNFrom x in a)) bottomSCCs''
-        bottomSCCs = Set.filter (\tangle -> all (\x -> maxOwns x || all (`Set.member` tangle) (successors pa x)) tangle) bottomSCCs'
+        (zGraph,zNFrom,_) = Graph.graphFromEdges (map (\x -> (x,x,graph Array.! x)) (IntSet.toList attractedZ))
+        bottomSCCs'' = Set.unions $ map (Set.map toIntSet . Set.fromList . Foldable.toList) $ map (tarjanNontrivial zGraph) (vertices zGraph)
+        bottomSCCs' = Set.map (IntSet.map (\x -> let (a,_,_) = zNFrom x in a)) bottomSCCs''
+        bottomSCCs = Set.filter (\tangle -> all (\x -> maxOwns x || all (`IntSet.member` tangle) (successors pa x)) (IntSet.toList tangle)) bottomSCCs'
         sccTangles = Set.map (\tangle -> Tangle (tangle, 
-                                                 Set.filter (\(l,_) -> l `Set.member` tangle) stratZ,
-                                                 Set.empty -- INCORRECT PROBABLY
+                                                 Set.filter (\(l,_) -> l `IntSet.member` tangle) stratZ,
+                                                 IntSet.empty -- INCORRECT PROBABLY
                                                  )) bottomSCCs 
-        tangleUp = Set.map (\(Tangle (l,r,escape)) -> Tangle (Set.map nodeFrom l, 
+        tangleUp = Set.map (\(Tangle (l,r,escape)) -> Tangle (IntSet.map nodeFrom l, 
                                                          Set.map (bimap nodeFrom nodeFrom) r, 
-                                                         Set.map nodeFrom escape))
+                                                         IntSet.map nodeFrom escape))
+        toIntSet = IntSet.fromDistinctAscList . Set.toAscList
 
-tangleLearning :: ParityGame a -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
-tangleLearning pa = tangleLearning' pa Set.empty Set.empty Set.empty Set.empty Set.empty id
+tangleLearning :: ParityGame a -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
+tangleLearning pa = tangleLearning' pa IntSet.empty IntSet.empty Set.empty Set.empty Set.empty id
 
-tangleLearning' :: ParityGame a -> Set Int -> Set Int -> Set (Int, Int) -> Set (Int, Int) -> Set Tangle -> (Int -> Int)
-                                -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
+tangleLearning' :: ParityGame a -> IntSet -> IntSet -> Set (Int, Int) -> Set (Int, Int) -> Set Tangle -> (Int -> Int)
+                                -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
 tangleLearning' pa@(ArenaPA graph priority _ _) w0 w1 s0 s1 tangles og | null (vertices graph) = (w0,w1,s0,s1)
                                                                        | null noEscape = tangleLearning' pa w0 w1 s0 s1 tangles2 og
                                                                        | otherwise = 
@@ -96,25 +103,25 @@ tangleLearning' pa@(ArenaPA graph priority _ _) w0 w1 s0 s1 tangles og | null (v
                         (s0 <> stratToOG evenStratRecurse) (s1 <> stratToOG oddStratRecurse) newTangles newOG
     where
         setY = searchTangles pa tangles 
-        (noEscape, withEscape) = Set.partition (\(Tangle (_,_,escape)) -> null escape) setY
+        (noEscape, withEscape) = Set.partition (\(Tangle (_,_,escape)) -> IntSet.null escape) setY
         tangles2 = tangles <> withEscape 
         (evenNoEscape, oddNoEscape) = Set.partition (\(Tangle (tSet,_,_))
-                                          -> even $ maximum (Set.map priority tSet)) noEscape
+                                          -> even $ IntSet.findMax (IntSet.map priority tSet)) noEscape
         getNodes (Tangle (vs,_,_)) = vs
         getStrat (Tangle (_,strat,_)) = strat
-        (evenRecurse, evenStratRecurse) = traceShowId $ tangleAttract pa (Set.unions (Set.map getNodes evenNoEscape)) Even 
+        (evenRecurse, evenStratRecurse) = traceShowId $ tangleAttract pa (flatMapS getNodes evenNoEscape) Even 
                                                            (Set.unions (Set.map getStrat evenNoEscape)) tangles2 
-        (oddRecurse, oddStratRecurse) = traceShowId $ tangleAttract pa (Set.unions (Set.map getNodes oddNoEscape)) Odd 
+        (oddRecurse, oddStratRecurse) = traceShowId $ tangleAttract pa (flatMapS getNodes oddNoEscape) Odd 
                                                          (Set.unions (Set.map getStrat oddNoEscape)) tangles2 
-        (newGraph,nodeFrom,vertexFrom') = subGame pa (Set.fromList (vertices graph) Set.\\ (evenRecurse <> oddRecurse))
+        (newGraph,nodeFrom,vertexFrom') = subGame pa (IntSet.fromList (vertices graph) IntSet.\\ (evenRecurse <> oddRecurse))
         vertexFrom = fromJust . vertexFrom'
-        nodesToOG = Set.map og
+        nodesToOG = IntSet.map og
         stratToOG = Set.map (bimap og og)
         --tangleToOg = Set.map (\(Tangle (a,b,c)) -> Tangle (nodesToOG a, stratToOG b, nodesToOG c)) -- for debugging
-        nodesToNew = Set.map vertexFrom
+        nodesToNew = IntSet.map vertexFrom
         stratToNew = Set.map (bimap vertexFrom vertexFrom)
-        newGraphVS = Set.fromList (vertices (forgetPA newGraph))
-        newTangles = Set.filter (\(Tangle (nodes,_,_)) -> nodes `Set.isSubsetOf` newGraphVS) newTangles'
+        newGraphVS = IntSet.fromList (vertices (forgetPA newGraph))
+        newTangles = Set.filter (\(Tangle (nodes,_,_)) -> nodes `IntSet.isSubsetOf` newGraphVS) newTangles'
         newTangles' = Set.map (\(Tangle (a,b,c)) -> Tangle (nodesToNew a,stratToNew b,nodesToNew c)) tangles2
         newOG x = case nodeFrom x of Just y -> og y; Nothing -> og x 
         {-

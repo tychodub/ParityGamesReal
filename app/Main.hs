@@ -27,12 +27,14 @@ import LTL (parseLTL)
 import Data.Map.Lazy (keys)
 import Dot
 import DiningPhilosophers (LeftForkFirst(LeftForkFirst), ArbitraryFork (ArbitraryFork), CrazyFork (CrazyFork))
+import Data.IntSet (IntSet)
+import Utils.IntSet (toSet)
 
 prettySet :: (Show a, Foldable t) => t a -> IO ()
 prettySet s = putStrLn $ "consistent: " ++ (foldMap (\x -> show x++"\n") $ toList s)
 
 oinkSolve :: FilePath -> FilePath -> 
-             (ParityArena -> (Set.Set Int, Set.Set Int, Set.Set (Int,Int), Set.Set (Int,Int))) -> IO ()
+             (ParityArena -> (IntSet, IntSet, Set.Set (Int,Int), Set.Set (Int,Int))) -> IO ()
 oinkSolve fIn fOut solver = do
   firstLine <- readFile fIn
   let otherLines = concat (tail (lines firstLine))
@@ -43,8 +45,9 @@ oinkSolve fIn fOut solver = do
                         Right parsed -> parsed
                         Left errorMsg -> error ("parsing of parity game failed: "++show errorMsg)
   let (w0,w1,strat0,strat1) = solver parsedGame
-  let newSet = Set.map (\x -> (x,0,fmap snd $ Set.find (\(l,_) -> l==x) strat0)) w0 <>
-               Set.map (\x -> (x,1,fmap snd $ Set.find (\(l,_) -> l==x) strat1)) w1
+  print (w0<>w1)
+  let newSet = Set.map (\x -> (x,0,fmap snd $ Set.find (\(l,_) -> l==x) strat0)) (toSet w0) <>
+               Set.map (\x -> (x,1,fmap snd $ Set.find (\(l,_) -> l==x) strat1)) (toSet w1)
   let outputStr =  foldMap (\(x,n,s) -> case s of
                             Nothing -> show x++" "++show n++"\n"
                             Just s' -> show x++" "++show n++" "++show s'++"\n") newSet
@@ -231,7 +234,7 @@ main = do
   exitSuccess
 
 
-solverMap :: Map.Map String (ParityGame a -> (Set.Set Int, Set.Set Int, Set.Set (Int, Int), Set.Set (Int, Int)))
+solverMap :: Map.Map String (ParityGame a -> (IntSet, IntSet, Set.Set (Int, Int), Set.Set (Int, Int)))
 solverMap = Map.fromList [
                          ("fpj",fpj), 
                          ("fpi",(\pa -> let (w0,w1) = fpi pa in (w0,w1,Set.empty,Set.empty))),

@@ -9,17 +9,17 @@ import Explorer (Explorer(..))
 import qualified Data.IntSet as IntSet
 import Data.IntSet (IntSet)
 
-zielonka :: Ord a => ParityGame a -> (Set a, Set a)
-zielonka pa = bimap (Set.map (indexToNode pa)) (Set.map (indexToNode pa)) (zielonkaVanDijk pa id id)
+zielonka :: Ord a => ParityGame a -> (IntSet, IntSet)
+zielonka pa = zielonkaVanDijk pa id id
 
-zielonkaVanDijk :: ParityGame a -> (Int -> Int) -> (Int -> Int) -> (Set Int, Set Int)
-zielonkaVanDijk pa@(ArenaPA graph pri _ _) og toCurrent | null (vertices graph) = (Set.empty, Set.empty)
-                                                        | toIntSet bAttract == complW = if even maxPri 
-                                                                                then (w0<>Set.map og (toSet uAttract),w1) 
-                                                                                else (w0,w1<>Set.map og (toSet uAttract))
+zielonkaVanDijk :: ParityGame a -> (Int -> Int) -> (Int -> Int) -> (IntSet, IntSet)
+zielonkaVanDijk pa@(ArenaPA graph pri _ _) og toCurrent | null (vertices graph) = (IntSet.empty, IntSet.empty)
+                                                        | bAttract == complW = if even maxPri 
+                                                                                then (w0<>IntSet.map og uAttract,w1) 
+                                                                                else (w0,w1<>IntSet.map og uAttract)
                                                         | otherwise = if even maxPri 
-                                                                       then (w0',w1'<>Set.map og bAttract) 
-                                                                       else (w0'<>Set.map og bAttract,w1')
+                                                                       then (w0',w1'<>IntSet.map og bAttract) 
+                                                                       else (w0'<>IntSet.map og bAttract,w1')
     where
         vs = vertices graph
         maxPri = maximum (map pri vs)
@@ -30,20 +30,15 @@ zielonkaVanDijk pa@(ArenaPA graph pri _ _) og toCurrent | null (vertices graph) 
                                | otherwise = Even
         uAttract = attractors pa uSet (playerFromInt maxPri) 
         vs' = IntSet.fromList vs IntSet.\\ uAttract
-        (newGraph,og', toCurrent') = subGame' pa (toSet vs')
+        (newGraph,og', toCurrent') = subGame' pa vs'
         (w0,w1) = zielonkaVanDijk newGraph (og . og') (toCurrent' . toCurrent)
-        complW = if even maxPri then toIntSet w1 else toIntSet w0
-        bAttract = toSet $ attractors pa (IntSet.map toCurrent complW) (playerFromIntFlipped maxPri) -- we give total graph indices for non total graph
-        (ng2,og2,tc2) = subGame' pa (Set.fromList vs Set.\\ bAttract)
+        complW = if even maxPri then w1 else w0
+        bAttract = attractors pa (IntSet.map toCurrent complW) (playerFromIntFlipped maxPri) -- we give total graph indices for non total graph
+        (ng2,og2,tc2) = subGame' pa (IntSet.fromList vs IntSet.\\ bAttract)
         (w0',w1') = zielonkaVanDijk ng2 (og . og2) (tc2 . toCurrent)
-        toIntSet = IntSet.fromDistinctAscList . Set.toAscList
-        toSet = Set.fromDistinctAscList . IntSet.toAscList
 
-zielonkaStrat :: ParityGame a -> (Set Int, Set Int,  Set (Int, Int), Set (Int, Int))
-zielonkaStrat pa = (toSet w0,toSet w1,s0,s1)
-    where
-      (w0,w1,s0,s1) = zielonkaVanDijkStrat pa id
-      toSet = Set.fromDistinctAscList . IntSet.toAscList
+zielonkaStrat :: ParityGame a -> (IntSet, IntSet,  Set (Int, Int), Set (Int, Int))
+zielonkaStrat pa = zielonkaVanDijkStrat pa id
 
 zielonkaVanDijkStrat :: ParityGame a -> (Int -> Int) -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
 zielonkaVanDijkStrat pa@(ArenaPA graph pri _ _) og 
@@ -71,12 +66,12 @@ zielonkaVanDijkStrat pa@(ArenaPA graph pri _ _) og
                                | otherwise = Even
         (uAttract,sA) = attractorsStrat pa uSet (playerFromInt maxPri) Set.empty
         vs' = IntSet.fromList vs IntSet.\\ uAttract
-        (newGraph,og', _) = subGame' pa (toSet vs')
+        (newGraph,og', _) = subGame' pa vs'
         (w0,w1,s0,s1) = zielonkaVanDijkStrat newGraph og'
         complW = if even maxPri then w1 else w0
         complS = if even maxPri then s1 else s0
         (bAttract,sB) = attractorsStrat pa complW (playerFromIntFlipped maxPri) complS
-        (ng2,og2,_) = subGame' pa (Set.fromList vs Set.\\ (toSet bAttract))
+        (ng2,og2,_) = subGame' pa (IntSet.fromList vs IntSet.\\ (bAttract))
         (w0',w1',s0',s1') = zielonkaVanDijkStrat ng2 og2
         (picked0,picked1) | even maxPri = Set.partition (\(l,_) -> ownsPA pa l ) 
                                  (Set.map (\z -> (z, Set.findMax (successors pa z `Set.intersection` ((toSet w0) <> (toSet uAttract))))) (toSet uSet))

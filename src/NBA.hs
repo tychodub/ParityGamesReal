@@ -56,6 +56,7 @@ nbaFromGnba :: (Ord a, Ord b) => GNBA a b -> NBA (a, Int) b
 nbaFromGnba (GNBA a b acts c d) = NBA nbaStates nbaInit acts nbaTransitions nbaAccept
     where
         n = length d
+        -- tried changing to Array, but appeared to be more expensive on the benchmark (and finalsList typically stays small)
         finalsList = if n > 0 then Seq.fromList $ Set.toList d else Seq.singleton (Set.fromList a)
         nbaInit = Set.map (\x -> (x, 0)) b
         nbaAccept = Set.map (\x -> (x,0)) $ fromJust (finalsList Seq.!? 0)

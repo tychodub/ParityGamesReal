@@ -79,7 +79,8 @@ library
                       ParityGames.TangleLearning,
                       LTLXML,
                       HOA,
-                      ParityGames.ParityParser
+                      ParityGames.ParityParser,
+                      Utils.IntSet
 
     -- Modules included in this library but not exported.
     -- other-modules:

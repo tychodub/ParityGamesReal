@@ -23,8 +23,8 @@ oneStep pa@(ArenaPA _ _ owns _) v distractions | owns v = if any (\u -> winner p
                                                                 then Odd
                                                                 else Even
 
-fpi :: ParityGame a -> (Set Int, Set Int)
-fpi pa@(ArenaPA graph priority _ _) = bimap toSet toSet $ fpiHelper IntSet.empty 0
+fpi :: ParityGame a -> (IntSet, IntSet)
+fpi pa@(ArenaPA graph priority _ _) = fpiHelper IntSet.empty 0
     where
         vs = IntSet.fromList (vertices graph)
         vp p = IntSet.filter (\v -> priority v == p) vs
@@ -38,10 +38,9 @@ fpi pa@(ArenaPA graph priority _ _) = bimap toSet toSet $ fpiHelper IntSet.empty
                        | otherwise = Odd
                 newDistract = IntSet.filter (\v -> (oneStep pa v distractions) /= parity) (vp p IntSet.\\ distractions)
 
-fpiFreeze :: ParityGame a -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
-fpiFreeze pa@(ArenaPA graph priority owns _) = (toSet res0, toSet res1, resStrat0, resStrat1)
+fpiFreeze :: ParityGame a -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
+fpiFreeze pa@(ArenaPA graph priority owns _) = fpiHelper IntSet.empty 0 Set.empty Set.empty Set.empty
     where
-        (res0,res1,resStrat0,resStrat1) = fpiHelper IntSet.empty 0 Set.empty Set.empty Set.empty
         vs = IntSet.fromList (vertices graph)
         vp p = IntSet.filter (\v -> priority v == p) vs
         maxPri = IntSet.findMax (IntSet.map priority vs)
@@ -82,10 +81,9 @@ fpiFreeze pa@(ArenaPA graph priority owns _) = (toSet res0, toSet res1, resStrat
 -- | current implementation of justification graph works mostly fine usually, as long as the graph is locally small
 --   (there are not many vertices originating from a single vertex). Could potentially be improved with an additional map
 --   parameter to keep track of justified predecessors to turn O(n) into O(1) operation.
-fpj :: ParityGame a -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
-fpj pa@(ArenaPA graph priority owns _) = (toSet res0, toSet res1, resStrat0, resStrat1)
+fpj :: ParityGame a -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
+fpj pa@(ArenaPA graph priority owns _) = fpiHelper IntSet.empty 0 Set.empty
     where
-        (res0,res1,resStrat0,resStrat1) = fpiHelper IntSet.empty 0 Set.empty
         vs = IntSet.fromList (vertices graph)
         vp p = IntSet.filter (\v -> priority v == p) vs
         maxPri = IntSet.findMax (IntSet.map priority vs)

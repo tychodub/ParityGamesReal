@@ -37,10 +37,8 @@ findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothi
 -- | A Zielonka implementation that keeps track of the paths found by the attractor.
 --   This information is used to avoid the initial recursive call in some cases where the \(B = W_{\overline{a}}\) branch
 --   would be taken.
-forcedPathZielonka :: ParityGame a -> (Set Int, Set Int,  Set (Int, Int), Set (Int, Int))
-forcedPathZielonka pa = (\(a,b,c,d) -> 
-                        (Set.fromAscList (IntSet.toAscList a),Set.fromAscList (IntSet.toAscList b),c,d)) 
-                        $ forcedPathZielonkaHelper pa id
+forcedPathZielonka :: ParityGame a -> (IntSet, IntSet,  Set (Int, Int), Set (Int, Int))
+forcedPathZielonka pa = forcedPathZielonkaHelper pa id
 
 findForcedPathsPartition :: ParityGame a -> Player -> IntSet -> (IntSet, Set (Int,Int), IntSet, Set (Int, Int))
 findForcedPathsPartition pa pl uSet = (l,lStrat,r,rStrat)
@@ -67,8 +65,7 @@ forcedPathZielonkaHelper pa@(ArenaPA graph pri _ _) og
                         mapOG ((uAttractGood,IntSet.empty,sAGood,Set.empty)<>(forcedPathZielonkaHelper middleGraph og'))
                         else
                         mapOG ((IntSet.empty,uAttractGood,Set.empty,sAGood)<>(forcedPathZielonkaHelper middleGraph og'))
-                    | otherwise = mapOG $ (\(a,b,c,d) -> 
-                        (IntSet.fromAscList (Set.toAscList a),IntSet.fromAscList (Set.toAscList b),c,d)) $ zielonkaStrat pa
+                    | otherwise = mapOG $ zielonkaStrat pa
     where
         vs = vertices graph
         maxPri = maximum (map pri vs)
@@ -76,7 +73,7 @@ forcedPathZielonkaHelper pa@(ArenaPA graph pri _ _) og
         playerFromInt n | even n = Even
                         | otherwise = Odd
         (uAttractGood,sAGood, uAttractUnd, _) = findForcedPathsPartition pa (playerFromInt maxPri) uSet
-        (middleGraph,middleOG,_) = subGame pa (IntSet.toList $ IntSet.fromList vs IntSet.\\ uAttractGood)
+        (middleGraph,middleOG,_) = subGame pa (IntSet.fromList vs IntSet.\\ uAttractGood)
         og' x = case middleOG x of 
             Just y -> y
             Nothing -> error ("could not find og name of "++show x++", attractLoops: "++show uAttractGood)

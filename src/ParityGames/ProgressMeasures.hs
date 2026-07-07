@@ -10,6 +10,8 @@ import qualified Data.Sequence as Seq
 import qualified Data.IntMap.Strict as Map
 import GHC.Arr ((!))
 import qualified GHC.Arr as Arr
+import Data.IntSet (IntSet)
+import qualified Data.IntSet as IntSet
 
 newtype Progress = Pr (Maybe (Seq Int)) deriving (Show, Eq)
 type ProgressMeasure = Int -> Progress -- might be worth turning into IntMap, but benchmark!
@@ -88,16 +90,16 @@ class LiftStrat a where
     lifted :: ParityGame b -> a -> Int -> a
     nextV :: ParityGame b -> a -> (Maybe Int,a)
 
-spm :: ParityGame a -> (Set Int, Set Int, Set (Int, Int), Set (Int, Int))
+spm :: ParityGame a -> (IntSet, IntSet, Set (Int, Int), Set (Int, Int))
 spm pa = (w0,w1,strat0,strat1)
     where
         (w0,w1,strat0) = spmSlides pa Even
         (_,_,strat1) = spmSlides pa Odd
 
-spmSlides ::  ParityGame a -> Player -> (Set Int, Set Int, Set (Int, Int))
+spmSlides ::  ParityGame a -> Player -> (IntSet, IntSet, Set (Int, Int))
 spmSlides pa pl = (w0,w1,strat)
     where
-        vertexSet = Set.fromList (verticesPA pa)
+        vertexSet = IntSet.fromList (verticesPA pa)
         range = playerRange pa pl
         invertedGraph = Data.Graph.transposeG (forgetPA pa)
         predecessors n = invertedGraph ! n
@@ -112,13 +114,14 @@ spmSlides pa pl = (w0,w1,strat)
                 newSPM v | v == x = lift pa range spm' x pl
                          | otherwise = spm' v
         resultSPM = loopHelper initQueue initMeasure
-        (w0,w1) | pl == Even = Set.partition (\v -> resultSPM v /= Pr Nothing) vertexSet
-                | otherwise  = Set.partition (\v -> resultSPM v == Pr Nothing) vertexSet
+        (w0,w1) | pl == Even = IntSet.partition (\v -> resultSPM v /= Pr Nothing) vertexSet
+                | otherwise  = IntSet.partition (\v -> resultSPM v == Pr Nothing) vertexSet
         plOwns | pl == Even = ownsPA pa
                | otherwise = not . ownsPA pa
         pickSucc v = Set.findMax (Set.filter (\u -> resultSPM v == prog range (resultSPM u) (prioPA pa v) pl) (successors pa v))
-        strat | pl == Even = Set.map (\v -> (v,pickSucc v)) (Set.intersection w0 (Set.filter plOwns vertexSet))
-              | otherwise  = Set.map (\v -> (v,pickSucc v)) (Set.intersection w1 (Set.filter plOwns vertexSet))
+        strat | pl == Even = Set.map (\v -> (v,pickSucc v)) (toSet $ IntSet.intersection w0 (IntSet.filter plOwns vertexSet))
+              | otherwise  = Set.map (\v -> (v,pickSucc v)) (toSet $ IntSet.intersection w1 (IntSet.filter plOwns vertexSet))
+        toSet = Set.fromDistinctAscList . IntSet.toAscList
 
 newtype LinearLiftStrat = LLS (Int, Int) deriving (Show, Eq)
 
