@@ -8,14 +8,13 @@ import qualified GHC.Arr as Array
 import Data.Maybe (fromJust)
 import qualified Data.Graph as Graph
 import qualified Data.Foldable as Foldable
-import Data.Bifunctor (Bifunctor(..))
 import Debug.Trace (traceShowId)
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import qualified GHC.Arr as Arr
 import Utils.IntSet
 import Data.IntMap (IntMap)
-import qualified Data.IntMap as IntMap
+import qualified Data.IntMap.Strict as IntMap
 
 -- | Tangle carries a set of nodes, a strategy and nodes it can escape to
 newtype Tangle = Tangle (IntSet, IntMap Int, IntSet) deriving (Show, Eq, Ord)

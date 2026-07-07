@@ -1,14 +1,12 @@
 module ParityGames.Zielonka where
 
 import ParityGames.ParityArena
-import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Bifunctor (bimap, Bifunctor (second, first))
 import Data.Graph
 import Explorer (Explorer(..))
 import qualified Data.IntSet as IntSet
 import Data.IntSet (IntSet)
-import qualified Data.IntMap as IntMap
+import qualified Data.IntMap.Strict as IntMap
 import Data.IntMap (IntMap)
 
 zielonka :: Ord a => ParityGame a -> (IntSet, IntSet)

@@ -6,10 +6,8 @@ import Explorer (Explorer(..))
 import Data.Graph (vertices)
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
-import Data.Bifunctor (Bifunctor(bimap))
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
-import Utils.IntSet (flatMapS)
 
 toSet :: IntSet -> Set Int
 toSet = Set.fromAscList . IntSet.toAscList

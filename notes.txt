@@ -1,2 +1,2 @@
-It appears using IntMap (naive conversion) for strategies mildly slows down Zielonka and fpi(+freezing), but speeds up fpj quite a lot.
-Also speeds up spm a little.
+It appears using IntMap (naive conversion) for strategies fpi(+freezing), but speeds up fpj quite a lot.
+Also speeds up spm and Zielonka a little.
