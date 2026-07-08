@@ -44,6 +44,8 @@ findForcedPathsPartition :: ParityGame a -> Player -> IntSet -> (IntSet, IntMap 
 findForcedPathsPartition pa pl uSet = (l,lStrat,r,rStrat)
     where
         found = findForcedPaths pa pl uSet
+        -- this may end up awry when A -> B -> C -> D, but not all is a loop
+        -- as such, we cannot shave of just the "good" attractors in the otherwise branch of forcedpathZielonkaHelper
         looping = IntSet.filter (\n -> let (_,len,_) = found Map.! n in isJust len) uSet
         (lMap,rMap) = IntMap.partition (\(_,_,x) -> x `IntSet.member` looping) found
         -- l is known winner, r is undecided
