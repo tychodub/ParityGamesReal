@@ -1,22 +1,18 @@
 module ParityGames.ForcedPath where
 import ParityGames.ParityArena
-import Data.Set (Set)
 import Data.Graph (transposeG, vertices)
 import qualified GHC.Arr as Arr
 import qualified Data.Set as Set
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import Explorer (Explorer(successors))
-import Data.Bifunctor (bimap)
-import ParityGames.Zielonka (zielonkaStrat)
 import qualified Data.IntMap.Strict as Map
 import Data.Maybe (isJust, isNothing)
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
-import Debug.Trace (traceShowId, traceShow)
 
-findForcedPaths :: ParityGame a -> Player -> Int -> Map.IntMap (Int, Maybe Int)
-findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothing))
+findForcedPaths :: ParityGame a -> Player -> IntSet -> Map.IntMap (Int, Maybe Int)
+findForcedPaths pa pl target = forcedPathsHelper (Map.fromSet (const (0, Nothing)) target )
     where
         plOwns | pl == Even = ownsPA pa
                | otherwise  = not . ownsPA pa
@@ -25,7 +21,7 @@ findForcedPaths pa pl target = forcedPathsHelper (Map.singleton target (0, Nothi
         forcedPathsHelper foundPaths | null newPaths = foundPaths
                                      | otherwise = forcedPathsHelper resultPaths
             where
-                newPathCandidates = IntSet.filter (\x -> (x == target && isNothing (snd (foundPaths Map.! target))) 
+                newPathCandidates = IntSet.filter (\x -> (x `IntSet.member` target && isNothing (snd (foundPaths Map.! x))) 
                                   || not (IntSet.member x (Map.keysSet foundPaths))) 
                                   $ IntSet.unions (map (IntSet.fromList . predecessors) (Map.keys foundPaths))
                 newPathsValid = IntSet.filter (\x -> if plOwns x 
@@ -47,8 +43,8 @@ findForcedPathsPartition :: ParityGame a -> Player -> IntSet -> (IntSet, IntMap 
 findForcedPathsPartition pa pl uSet = (l,lStrat,r,rStrat)
     where
         -- l is known winner, r is undecided
-        (l,lStrat,r,rStrat) =  IntSet.foldr (\n (l',lStrat',r',rStrat') -> 
-            let found = findForcedPaths pa pl n in
+        (l,lStrat,r,rStrat) = let found = findForcedPaths pa pl uSet in
+            IntSet.foldl' (\(l',lStrat',r',rStrat') n ->
             if (case (found Map.!? n) of 
                 Nothing -> error ("did not find "++show n++"in own attractor")
                 Just (_,len) -> isJust len)
@@ -56,8 +52,9 @@ findForcedPathsPartition pa pl uSet = (l,lStrat,r,rStrat)
                 lStrat'<>(IntMap.map (\(_,Just b) -> b) (IntMap.filter (isJust . snd) found)),
                 r',rStrat') 
                 else (l',lStrat',r'<>IntSet.fromList (Map.keys found),
-                rStrat'<>IntMap.map (\(_,Just b) -> b) (IntMap.filter (isJust . snd) found))) 
+                rStrat'<>IntMap.map (\(_,Just b) -> b) (IntMap.filter (isJust . snd) found)))
                 (IntSet.empty, IntMap.empty, IntSet.empty, IntMap.empty) uSet
+                 
                 
 
 forcedPathZielonkaHelper :: ParityGame a -> (Int -> Int) -> (IntSet, IntSet, IntMap Int, IntMap Int)
@@ -110,9 +107,13 @@ forcedPathZielonkaHelper pa@(ArenaPA graph pri _ _) og
         (w0',w1',s0',s1') = forcedPathZielonkaHelper ng2 og2
         (picked0,picked1) | even maxPri = IntMap.partitionWithKey (\l _ -> ownsPA pa l ) 
                                  (IntSet.foldl' (\m z -> IntMap.insert z 
-                                    (Set.findMax (successors pa z `Set.intersection` ((toSet w0) <> (toSet uAttract)))) m) IntMap.empty uAttractUnd)
+                                    (Set.findMax (let tmp = successors pa z `Set.intersection` ((toSet w0) <> (toSet uAttract)) 
+                                    in if null tmp then error ("could not find any "++show (successors pa z)++" in "++show ((toSet w0) <> (toSet uAttract))++" for "++show z) 
+                                        else tmp)) m) IntMap.empty uAttractUnd)
                           | otherwise = IntMap.partitionWithKey (\l _ -> ownsPA pa l ) 
                                  (IntSet.foldl' (\m z -> IntMap.insert z
-                                    (Set.findMax (successors pa z `Set.intersection` ((toSet w1) <> (toSet uAttract)))) m) IntMap.empty uAttractUnd)
+                                    (Set.findMax (let tmp = successors pa z `Set.intersection` ((toSet w1) <> (toSet uAttract)) 
+                                    in if null tmp then error ("could not find any "++show (successors pa z)++" in "++show ((toSet w1) <> (toSet uAttract))++" for "++show z) 
+                                        else tmp)) m) IntMap.empty uAttractUnd)
         toSet = Set.fromDistinctAscList . IntSet.toAscList
                                         

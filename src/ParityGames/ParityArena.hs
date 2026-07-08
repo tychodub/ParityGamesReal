@@ -60,7 +60,7 @@ pruneLeafs pa@(ArenaPA graph _ _ _) = (newGraph, toOG, c)
         (newGraph,toOG,c) = subGame pa leftoverVS
 
 instance Show (ParityGame a) where
-    show = show . forgetPA
+    show (ArenaPA graph pri owns _) = show graph++"\n"++show (map (\x -> (x, pri x, owns x)) $ vertices graph)
 
 instance Show a => Dot (ParityGame a) where
   dotNodes (ArenaPA graph pri evenOwn toNode) = Set.fromList $ map 
