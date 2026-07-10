@@ -1,16 +1,13 @@
 module ParityGames.FixedPointSolver (fpi, fpiFreeze, fpj) where
 import ParityGames.ParityArena
 import qualified Data.Set as Set
-import Data.Set (Set)
 import Explorer (Explorer(..))
 import Data.Graph (vertices)
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
-
-toSet :: IntSet -> Set Int
-toSet = Set.fromAscList . IntSet.toAscList
+import Utils.IntSet (toSet)
 
 winner :: ParityGame a -> Int -> IntSet -> Player
 winner (ArenaPA _ priority _ _) v distractions | not (v `IntSet.member` distractions) = if even (priority v) then Even else Odd
@@ -80,9 +77,6 @@ fpiFreeze pa@(ArenaPA graph priority owns _) = fpiHelper IntSet.empty 0 Set.empt
                 s1'' = s1tmp <> IntSet.foldl' (\m x -> m <> getEdgesPL newestDistract distractions x Even) 
                         IntMap.empty newOddDistract
 
--- | current implementation of justification graph works mostly fine usually, as long as the graph is locally small
---   (there are not many vertices originating from a single vertex). Could potentially be improved with an additional map
---   parameter to keep track of justified predecessors to turn O(n) into O(1) operation.
 fpj :: ParityGame a -> (IntSet, IntSet, IntMap Int, IntMap Int)
 fpj pa@(ArenaPA graph priority owns _) = (\(a,b,c,d) -> (a,b,IntMap.map head c, IntMap.map head d)) $ fpiHelper IntSet.empty 0 IntMap.empty
     where
