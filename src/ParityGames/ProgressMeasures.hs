@@ -10,35 +10,35 @@ import qualified Data.Sequence as Seq
 import qualified Data.IntMap.Strict as Map
 import GHC.Arr ((!))
 import qualified GHC.Arr as Arr
+import qualified Data.Array.ST as ST 
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
 
-newtype Progress = Pr (Maybe (Seq Int)) deriving (Show, Eq)
-type ProgressMeasure = Int -> Progress -- might be worth turning into IntMap, but benchmark!
+newtype Progress s = Pr (Maybe (ST.STArray s Int Int)) deriving (Eq)
+type ProgressMeasure s = Int -> Progress s -- might be worth turning into IntMap, but benchmark!
 
-prApp :: (Seq Int -> Seq Int) -> Progress -> Progress
+prApp :: (ST.STArray s Int Int -> ST.STArray s Int Int) -> Progress s -> Progress s
 prApp f (Pr m) = Pr (fmap f m)
 
-prWrap :: Seq Int -> Progress
+prWrap :: ST.STArray s Int Int -> Progress s
 prWrap = Pr . Just
 
-zeroMeasure :: ParityGame a -> Player -> ProgressMeasure
-zeroMeasure pa pl _ = Pr $ Just $ Seq.replicate (length $ (playerRange pa pl)) 0
+zeroMeasure :: ParityGame a -> Player -> ProgressMeasure s
+zeroMeasure pa pl _ = Pr $ ST.newArray (0,len-1) 0
+    where
+        len = length $ (playerRange pa pl)
 
-instance Ord Progress where
+instance Ord (Progress s) where
     _ <= (Pr Nothing) = True
     (Pr Nothing) <= _ = False
     (Pr (Just xs)) <= (Pr (Just ys)) = xs <= ys
 
-instance Semigroup Progress where
+instance Semigroup (Progress s) where
     (Pr Nothing) <> _ = Pr Nothing
     _ <> (Pr Nothing) = Pr Nothing
     (Pr (Just xs)) <> (Pr (Just ys)) = Pr (Just (xs<>ys))
-
-instance Monoid Progress where
-    mempty = prWrap Seq.empty
 
 playerRange :: ParityGame a -> Player -> Arr.Array Int (Int, Int)
 playerRange (ArenaPA graph priority _ _) pl = let xs = reverse (Map.toList accumSet) 
@@ -50,27 +50,18 @@ playerRange (ArenaPA graph priority _ _) pl = let xs = reverse (Map.toList accum
             then Map.insertWith (+) (priority v) 1 state 
             else state) Map.empty (vertices graph)
 
--- may be faster to encode the range as an Int and simply have a map for how much the int should be increased
-overflowIncr :: Arr.Array Int (Int, Int) -> Progress -> Progress
-overflowIncr _ (Pr Nothing) = Pr Nothing
-overflowIncr range (Pr (Just xs)) | fst result = Pr Nothing
-                                  | otherwise  = prWrap $ snd result
-    where
-        incrVal i n = (n+1) `rem` (1+(snd $ range Arr.! i))
-        indexCalc i n (overflowed,xs') = if overflowed 
-            then (if (incrVal i n) == 0 then True else False,Seq.update i (incrVal i n) xs') 
-            else (False,xs')
-        result = Seq.foldrWithIndex indexCalc (True,xs) xs
-
-prog :: Arr.Array Int (Int,Int) -> Progress -> Int -> Player -> Progress
+prog :: Arr.Array Int (Int,Int) -> Progress s -> Int -> Player -> Progress s
 prog _ (Pr Nothing) _ _ = Pr Nothing
-prog range (Pr (Just m)) p player | pPlayer == player = Pr (Just case1Result)
+prog range (Pr (Just m)) p player | pPlayer == player = Pr case1Result
                                   | otherwise = case2Result
     where
         pPlayer = toEnum (p `rem` 2)
-        (prefix,toReset) = Seq.splitAt splitIndex m
-        case1Result = prefix <> Seq.replicate (length toReset) 0
-        case2Result = (overflowIncr range (prWrap prefix))<>prWrap (Seq.replicate (length toReset) 0)
+        case1Result = do 
+                        bound <- ST.getBounds m
+                        ST.newGenArray bound (\n -> if n > splitIndex then pure 0 else ST.readArray m n)
+        case2Result = do --(overflowIncr range (prWrap prefix))<>prWrap (Seq.replicate (length toReset) 0)
+                   undefined
+        overflowIncr 0 b = if b then ST.writeArray m 0  else undefined
         splitIndex = case (Arr.foldlElems' (\(b,n) (l,_) -> if b 
             then (True,n)
             else if l < p then (True,n) else (False,n+1)
@@ -78,7 +69,7 @@ prog range (Pr (Just m)) p player | pPlayer == player = Pr (Just case1Result)
                           (True,r)  -> r 
                           (False,_) -> length m
 
-lift :: ParityGame a -> Arr.Array Int (Int, Int) -> ProgressMeasure -> Int -> Player -> Progress
+lift :: ParityGame a -> Arr.Array Int (Int, Int) -> ProgressMeasure s -> Int -> Player -> Progress s
 lift pa range f v pl | plOwns v = minimum candidates
                      | otherwise = maximum candidates
     where
