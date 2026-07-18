@@ -20,9 +20,9 @@ class ParityClass a where
     successorsPA :: a -> Int -> Set Int
 
 data ParityGame a = ArenaPA { 
-    forgetPA :: Graph, 
-    prioPA :: Int -> Int,
-    evenOwns :: Int -> Bool,
+    forgetPA :: {-# UNPACK #-} !Graph, 
+    prioPA ::  !(Int -> Int),
+    evenOwns :: !(Int -> Bool),
     indexToNode :: Int -> a 
 }
 
